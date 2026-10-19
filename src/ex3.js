@@ -17,8 +17,8 @@ function renderHome() {
   document.body.innerHTML = `<div class="home">
     <div class="hero"><h1>Экспресс-анализ для КМ</h1>
       <p>Быстро понять, подходит ли клиент для финансирования, ещё до сбора полного пакета документов. Внесите данные клиента и запрос, загрузите баланс и ОПиУ — сайт сам посчитает показатели, подсветит проблемы и расхождения и напишет заключение простым языком.</p>
-      <div class="row"><button class="btn primary big" data-act="new">+ Новый клиент</button><button class="btn alt big" data-act="demo">Пример для заполнения</button><button class="btn alt big" data-act="openfile">Открыть файл клиента</button></div></div>
-    <div class="how">${PAGES.map(([, t], i) => `<div><b>${i + 1}. ${t}</b><span>${["данные клиента, запрос, залог, текущие кредиты", "загрузка Excel/PDF или ввод цифр, декларации", "ключевые показатели и сколько можно дать", "что не так и что уточнить у клиента", "итог для руководителя — можно править и печатать"][i]}</span></div>`).join("")}</div>
+      <div class="row"><button class="btn primary big" data-act="new">+ Новый клиент</button><button class="btn alt big" data-act="demo">Пример для заполнения</button><button class="btn alt2 big" data-act="openfile">Открыть файл клиента</button></div></div>
+    <div class="how">${PAGES.map(([, t], i) => `<div><b><em>${i + 1}</em>${t}</b><span>${["данные клиента, запрос, залог, текущие кредиты", "загрузка Excel/PDF или ввод цифр, декларации", "ключевые показатели и сколько можно дать", "что не так и что уточнить у клиента", "итог для руководителя — можно править и печатать"][i]}</span></div>`).join("")}</div>
     <h2 style="margin-bottom:10px">Клиенты</h2>
     ${list.length ? `<div class="clist">${list.map(c => { const v = clientVerdict(c); return `<div class="citem" data-open="${c.id}"><div class="nm"><b>${esc(c.card.name || "Без названия")}${c.demo ? ' <span class="tag nd">пример</span>' : ""}</b><span class="small muted">${esc([c.card.bin, c.card.product, isNum(c.card.amount) ? fmt(c.card.amount) + " тыс. тг" : ""].filter(Boolean).join(" · "))} · изменён ${new Date(c.updated).toLocaleDateString("ru-RU")}</span></div><span class="tag ${v.sev}">${esc(v.title)}</span><button class="xbtn" title="Удалить" data-del="${c.id}">×</button></div>`; }).join("")}</div>`
       : `<div class="empty">Пока нет клиентов. Нажмите «Новый клиент» или посмотрите «Пример для заполнения».</div>`}
@@ -33,10 +33,10 @@ function renderClient() {
   const dots = { card: X.card.name && N(X.card.amount) ? "ok" : "nd", fin: X.per.some(p => isNum(fv("rev", p.id))) ? "ok" : "nd", an: v.sev, prob: pr.some(p => p.sev === "crit") ? "crit" : pr.some(p => p.sev === "risk") ? "risk" : pr.some(p => p.sev === "chk") ? "chk" : "ok", concl: v.sev };
   const body = { card: pageCard, fin: pageFin, an: pageAn, prob: pageProb, concl: pageConcl }[PAGE](pr, v);
   document.body.innerHTML = `<div class="app"><nav class="rail">
-    <div class="brand">Экспресс-анализ<small>для кредитного менеджера</small></div>
+    <div class="brand"><span>Экспресс-анализ<small>для кредитного менеджера</small></span></div>
     <div class="client"><b>${esc(X.card.name || "Новый клиент")}</b><button data-act="home">← ко всем клиентам</button></div>
     <ol class="steps">${PAGES.map(([id, t]) => `<li><button data-page="${id}"${PAGE === id ? ' aria-current="page"' : ""}>${t}<span class="dot ${dots[id]}"></span></button></li>`).join("")}</ol>
-    <div class="foot"><button class="btn ghost" style="color:#BFD9DB;padding-left:0" data-act="save">Сохранить в файл</button><br>Все суммы — тыс. тг. Данные только в этом браузере.</div>
+    <div class="foot"><button class="btn ghost" style="padding-left:0" data-act="save">Сохранить в файл</button><br>Все суммы — тыс. тг. Данные только в этом браузере.</div>
   </nav><main class="main">${body}</main></div><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf" class="hidden">`;
   const cur = document.querySelector('.steps [aria-current="page"]'); if (cur && window.innerWidth <= 860) cur.scrollIntoView({ inline: "center", block: "nearest" });
   if (PAGE === "concl") { const ta = $("#concl"); if (ta) ta.style.height = Math.max(560, ta.scrollHeight + 10) + "px"; }
@@ -56,7 +56,7 @@ function pageCard() {
   const cnum = (f, ph = "") => num(c[f], "c." + f, ph ? `placeholder="${esc(ph)}"` : "");
   const csel = (f, list) => `<select class="inp" data-k="c.${f}">${opts(list, c[f])}</select>`;
   const loans = c.loans || [], coll = c.coll || [], guar = c.guar || [];
-  return `<div class="pagehead"><div class="lead"><h1>Карточка клиента</h1><p>Кто клиент, что он просит и какие у него уже есть кредиты. Поля жёлтого цвета заполняете вы; суммы — в тыс. тенге.</p></div></div>
+  return `<div class="pagehead"><div class="lead"><h1>Карточка клиента</h1><p>Кто клиент, что он просит и какие у него уже есть кредиты. Серые поля заполняете вы; суммы — в тыс. тенге.</p></div></div>
   <section class="panel"><h2>Клиент</h2><p class="hint">Данные из регистрационных документов или со слов клиента.</p>
     <div class="grid">
       ${fld("Наименование", cin("name", "ТОО «…»"))}
