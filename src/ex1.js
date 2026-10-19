@@ -28,9 +28,10 @@ function parseNum(s) {
 const nf0 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
 const nf1 = new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const nf2 = new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nfd2 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 });   // до сотых: 19,25 · 19,5 · 20
 function fmt(v, kind = "m") {
   if (!isNum(v)) return "";
-  const s = kind === "x" ? nf2.format(v) : kind === "p" ? nf1.format(v * 100) + " %" : kind === "1" ? nf1.format(v) : nf0.format(Math.round(v));
+  const s = kind === "d2" ? nfd2.format(Math.round(v * 100) / 100) : kind === "x" ? nf2.format(v) : kind === "p" ? nf1.format(v * 100) + " %" : kind === "1" ? nf1.format(v) : nf0.format(Math.round(v));
   return s.replace("-", "−");
 }
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));

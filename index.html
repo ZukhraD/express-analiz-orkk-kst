@@ -421,9 +421,10 @@ function parseNum(s) {
 const nf0 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
 const nf1 = new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const nf2 = new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nfd2 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 });   // до сотых: 19,25 · 19,5 · 20
 function fmt(v, kind = "m") {
   if (!isNum(v)) return "";
-  const s = kind === "x" ? nf2.format(v) : kind === "p" ? nf1.format(v * 100) + " %" : kind === "1" ? nf1.format(v) : nf0.format(Math.round(v));
+  const s = kind === "d2" ? nfd2.format(Math.round(v * 100) / 100) : kind === "x" ? nf2.format(v) : kind === "p" ? nf1.format(v * 100) + " %" : kind === "1" ? nf1.format(v) : nf0.format(Math.round(v));
   return s.replace("-", "−");
 }
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -2852,7 +2853,7 @@ function odChecks(d = odCalc()) {
   if (d.auto && d.S.our.noRate.length + d.S.other.noRate.length) add("chk", "Курс для валютных счетов", "не указан курс — валютная выписка не учтена", "Укажите курс к тенге у валютной выписки.");
   if (d.auto) add(d.fewOps > (d.n === 12 ? 2 : 1) ? "crit" : d.fewOps ? "chk" : "ok", "Поступления не реже 3 раз в месяц", d.fewOps ? `месяцев с менее чем 3 поступлениями: ${d.fewOps}` : "в каждом месяце 3 и больше", "Допускается 1 такой месяц из 6 (2 из 12).");
   add(isNum(d.buyers) ? (d.buyers >= 3 ? "ok" : "crit") : "nd", "Не менее 3 покупателей", isNum(d.buyers) ? `${d.buyers}${d.auto ? " (по выпискам)" : ""}` : "не указано", "Нужно минимум 3 покупателя за период.");
-  if (isNum(d.topShare)) add(d.topShare > 60 ? "chk" : "ok", "Доля одного покупателя не более 60 %", `${fmt(d.topShare, "1")} %${d.auto && d.cpl[0] ? " — " + d.cpl[0].name : ""}`, "Лимит уже рассчитан с ограничением: от этого покупателя учтено не более 60 % поступлений.");
+  if (isNum(d.topShare)) add(d.topShare > 60 ? "chk" : "ok", "Доля одного покупателя не более 60 %", `${fmt(d.topShare, "d2")} %${d.auto && d.cpl[0] ? " — " + d.cpl[0].name : ""}`, "Лимит уже рассчитан с ограничением: от этого покупателя учтено не более 60 % поступлений.");
   if (d.sOther > 0) add(N(d.otherBanks) > 2 ? "crit" : isNum(d.otherBanks) ? "ok" : "nd", "Обороты в других банках — не более 2 банков", isNum(d.otherBanks) ? `банков: ${d.otherBanks}` : "не указано", "Учитываются обороты не более чем в 2 других банках; условие — перевод 90 % оборотов в наш банк в течение 3 месяцев.");
   if (+o.tranche === 90) add(o.banned === "Да" ? "crit" : "ok", "Транш до 90 дней не для строительства и сельского хозяйства", o.banned === "Да" ? "отрасль — строительство / сельское хозяйство" : "отрасль подходит", "Для этих отраслей — только транш до 30 дней.");
   add(N(c.term) > 0 ? (N(c.term) <= 36 ? "ok" : "crit") : "nd", "Срок кредитной линии не более 36 мес.", N(c.term) ? `${c.term} мес.` : "не указан", "Уменьшите срок линии до 36 мес.");
@@ -2983,7 +2984,9 @@ const PAGES = [["card", "Карточка клиента"], ["fin", "Финан�
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2800); }
 const tip = t => `<span class="tip" title="${esc(t)}">?</span>`;
 const T = v => isNum(v) ? fmt(v) : "—";
-const num = (v, key, extra = "") => `<input class="inp num" inputmode="decimal" data-k="${key}" value="${isNum(v) ? fmt(v, Math.abs(v) < 100 && v % 1 ? "1" : "m") : ""}" ${extra}>`;
+// числа в полях: суммы — целые (дробные до сотых), проценты и курс — до сотых (19,25)
+const PCT_KEYS = /(^c\.rate$|^od\.topShare$|^ost\.\d+\.rate$|^c\.guarPct$)/;
+const num = (v, key, extra = "") => `<input class="inp num" inputmode="decimal" data-k="${key}" value="${isNum(v) ? fmt(v, PCT_KEYS.test(key) || (Math.abs(v) < 100 && v % 1) ? "d2" : "m") : ""}" ${extra}>`;
 const fld = (label, inner, cls = "") => `<label class="fld ${cls}"><span>${label}</span>${inner}</label>`;
 const opts = (list, cur) => list.map(o => { const [v, t] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(v)}"${String(v) === String(cur) ? " selected" : ""}>${esc(t)}</option>`; }).join("");
 
@@ -3044,7 +3047,7 @@ function pageCard() {
       ${od ? fld("Срок транша", `<select class="inp" data-k="od.tranche">${opts([["30", "до 30 дней"], ["90", "до 90 дней"]], String(odCfg().tranche))}</select>`) : fld("Погашение", csel("sched", Object.entries(SCHED)))}
       ${fld(od ? "Сумма (лимит), тыс. тг" : "Сумма займа, тыс. тг", cnum("amount"))}
       ${fld(od ? "Срок кредитной линии, мес." : "Срок, мес.", cnum("term"))}
-      ${fld("Ставка, % годовых", cnum("rate"))}
+      ${fld("Ставка, % годовых", cnum("rate", "например, 19,25"))}
       ${od ? "" : fld("Льготный период, мес.", cnum("grace", "0"))}
       ${fld("Взнос по действующим кредитам, тыс. тг/мес.", num(pe, "c.payExist", `placeholder="0 — если кредитов нет"`))}
       ${od ? "" : `<div class="fld"></div>`}
@@ -3060,7 +3063,7 @@ function odPanel() {
   const d = odCalc(), o = d.o, S = d.S;
   const sel = (k, list) => `<select class="inp" data-k="od.${k}">${opts(list, String(o[k]))}</select>`;
   const onum = (k, ph = "") => num(o[k], "od." + k, ph ? `placeholder="${esc(ph)}"` : "");
-  const autoBox = (v, unit = "") => `<div class="calcbox">${isNum(v) ? fmt(v, unit === "%" ? "1" : "m") + (unit ? " " + unit : "") : "—"}</div><span class="fnote">по выпискам</span>`;
+  const autoBox = (v, unit = "") => `<div class="calcbox">${isNum(v) ? fmt(v, unit === "%" ? "d2" : "m") + (unit ? " " + unit : "") : "—"}</div><span class="fnote">по выпискам</span>`;
   const chk = odChecks(d);
   const cell = (r, w) => S[w].has ? `<td class="auto">${r[w] === null ? '<span class="muted small">нет выписки</span>' : T(r[w])}</td>` : `<td class="c">${num(r[w], `odm.${r.ym}.${w}`)}</td>`;
   return `<section class="panel"><h2>Овердрафт: расчёт лимита</h2>
@@ -3245,7 +3248,7 @@ function buildConclusion(pr, v) {
   D.push({ meta: `${c.name || "Клиент"} · ${new Date().toLocaleDateString("ru-RU")} · предварительная оценка` });
   D.push({ v });
   H("1. Запрос клиента");
-  P(`${c.product || "Кредит"} на сумму ${t(c.amount)}, срок ${isOD(c) ? "кредитной линии " : ""}${c.term || "—"} мес., ставка ${isNum(c.rate) ? fmt(c.rate, "1") + " %" : "—"}. Цель — ${(c.purpose || "").toLowerCase()}.`);
+  P(`${c.product || "Кредит"} на сумму ${t(c.amount)}, срок ${isOD(c) ? "кредитной линии " : ""}${c.term || "—"} мес., ставка ${isNum(c.rate) ? fmt(c.rate, "d2") + " %" : "—"}. Цель — ${(c.purpose || "").toLowerCase()}.`);
   if (m.newPay) P(isOD(c) ? `Проценты при полном использовании лимита — около ${t(m.newPay.pay)} в месяц.` : `Ежемесячный платёж по новому кредиту — около ${t(m.newPay.pay)} (${m.newPay.note}).`);
   H("2. Финансовое положение");
   if (m.pl) {
@@ -3313,7 +3316,7 @@ function openClient(c, page = "card") { X = c; PAGE = page; UPL = { pid: null, u
 function onChange(el) {
   const k = el.dataset.k; if (!k) return false;
   const parts = k.split("."), raw = el.type === "checkbox" ? el.checked : el.value;
-  const nval = () => { const v = parseNum(raw); return v; };
+  const nval = () => { const v = parseNum(raw); return isNum(v) && PCT_KEYS.test(k) ? Math.round(v * 100) / 100 : v; };   // проценты и курс — до сотых
   if (parts[0] === "c") { const f = parts[1]; X.card[f] = NUMF.has(f) ? nval() : raw; }
   else if (parts[0] === "a") {
     const [, arr, i, f] = parts, o = X.card[arr][+i];
@@ -3409,7 +3412,7 @@ let PD = false, PENDING = false;
 document.addEventListener("pointerdown", () => { PD = true; }, true);
 document.addEventListener("pointerup", () => { PD = false; setTimeout(flush, 0); }, true);
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input.inp")) e.target.blur(); });
-document.addEventListener("focusin", e => { if (e.target.matches("input.num")) { const v = parseNum(e.target.value); if (isNum(v)) e.target.value = String(v).replace(".", ","); e.target.select(); } });
+document.addEventListener("focusin", e => { if (e.target.matches("input.num")) { const v = parseNum(e.target.value); if (isNum(v)) e.target.value = String(Math.round(v * 100) / 100).replace(".", ","); e.target.select(); } });
 document.addEventListener("toggle", e => { if (e.target.matches && e.target.matches("details.ops")) OD_OPEN = e.target.open; }, true);
 document.addEventListener("dragover", e => { const d = e.target.closest?.("#drop, #sdrop"); if (d) { e.preventDefault(); d.classList.add("on"); } });
 document.addEventListener("dragleave", e => { const d = e.target.closest?.("#drop, #sdrop"); if (d) d.classList.remove("on"); });

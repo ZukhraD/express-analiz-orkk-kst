@@ -15,7 +15,7 @@ function openClient(c, page = "card") { X = c; PAGE = page; UPL = { pid: null, u
 function onChange(el) {
   const k = el.dataset.k; if (!k) return false;
   const parts = k.split("."), raw = el.type === "checkbox" ? el.checked : el.value;
-  const nval = () => { const v = parseNum(raw); return v; };
+  const nval = () => { const v = parseNum(raw); return isNum(v) && PCT_KEYS.test(k) ? Math.round(v * 100) / 100 : v; };   // проценты и курс — до сотых
   if (parts[0] === "c") { const f = parts[1]; X.card[f] = NUMF.has(f) ? nval() : raw; }
   else if (parts[0] === "a") {
     const [, arr, i, f] = parts, o = X.card[arr][+i];
@@ -111,7 +111,7 @@ let PD = false, PENDING = false;
 document.addEventListener("pointerdown", () => { PD = true; }, true);
 document.addEventListener("pointerup", () => { PD = false; setTimeout(flush, 0); }, true);
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input.inp")) e.target.blur(); });
-document.addEventListener("focusin", e => { if (e.target.matches("input.num")) { const v = parseNum(e.target.value); if (isNum(v)) e.target.value = String(v).replace(".", ","); e.target.select(); } });
+document.addEventListener("focusin", e => { if (e.target.matches("input.num")) { const v = parseNum(e.target.value); if (isNum(v)) e.target.value = String(Math.round(v * 100) / 100).replace(".", ","); e.target.select(); } });
 document.addEventListener("toggle", e => { if (e.target.matches && e.target.matches("details.ops")) OD_OPEN = e.target.open; }, true);
 document.addEventListener("dragover", e => { const d = e.target.closest?.("#drop, #sdrop"); if (d) { e.preventDefault(); d.classList.add("on"); } });
 document.addEventListener("dragleave", e => { const d = e.target.closest?.("#drop, #sdrop"); if (d) d.classList.remove("on"); });

@@ -38,7 +38,9 @@ const PAGES = [["card", "Карточка клиента"], ["fin", "Финан�
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2800); }
 const tip = t => `<span class="tip" title="${esc(t)}">?</span>`;
 const T = v => isNum(v) ? fmt(v) : "—";
-const num = (v, key, extra = "") => `<input class="inp num" inputmode="decimal" data-k="${key}" value="${isNum(v) ? fmt(v, Math.abs(v) < 100 && v % 1 ? "1" : "m") : ""}" ${extra}>`;
+// числа в полях: суммы — целые (дробные до сотых), проценты и курс — до сотых (19,25)
+const PCT_KEYS = /(^c\.rate$|^od\.topShare$|^ost\.\d+\.rate$|^c\.guarPct$)/;
+const num = (v, key, extra = "") => `<input class="inp num" inputmode="decimal" data-k="${key}" value="${isNum(v) ? fmt(v, PCT_KEYS.test(key) || (Math.abs(v) < 100 && v % 1) ? "d2" : "m") : ""}" ${extra}>`;
 const fld = (label, inner, cls = "") => `<label class="fld ${cls}"><span>${label}</span>${inner}</label>`;
 const opts = (list, cur) => list.map(o => { const [v, t] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(v)}"${String(v) === String(cur) ? " selected" : ""}>${esc(t)}</option>`; }).join("");
 
@@ -99,7 +101,7 @@ function pageCard() {
       ${od ? fld("Срок транша", `<select class="inp" data-k="od.tranche">${opts([["30", "до 30 дней"], ["90", "до 90 дней"]], String(odCfg().tranche))}</select>`) : fld("Погашение", csel("sched", Object.entries(SCHED)))}
       ${fld(od ? "Сумма (лимит), тыс. тг" : "Сумма займа, тыс. тг", cnum("amount"))}
       ${fld(od ? "Срок кредитной линии, мес." : "Срок, мес.", cnum("term"))}
-      ${fld("Ставка, % годовых", cnum("rate"))}
+      ${fld("Ставка, % годовых", cnum("rate", "например, 19,25"))}
       ${od ? "" : fld("Льготный период, мес.", cnum("grace", "0"))}
       ${fld("Взнос по действующим кредитам, тыс. тг/мес.", num(pe, "c.payExist", `placeholder="0 — если кредитов нет"`))}
       ${od ? "" : `<div class="fld"></div>`}
@@ -115,7 +117,7 @@ function odPanel() {
   const d = odCalc(), o = d.o, S = d.S;
   const sel = (k, list) => `<select class="inp" data-k="od.${k}">${opts(list, String(o[k]))}</select>`;
   const onum = (k, ph = "") => num(o[k], "od." + k, ph ? `placeholder="${esc(ph)}"` : "");
-  const autoBox = (v, unit = "") => `<div class="calcbox">${isNum(v) ? fmt(v, unit === "%" ? "1" : "m") + (unit ? " " + unit : "") : "—"}</div><span class="fnote">по выпискам</span>`;
+  const autoBox = (v, unit = "") => `<div class="calcbox">${isNum(v) ? fmt(v, unit === "%" ? "d2" : "m") + (unit ? " " + unit : "") : "—"}</div><span class="fnote">по выпискам</span>`;
   const chk = odChecks(d);
   const cell = (r, w) => S[w].has ? `<td class="auto">${r[w] === null ? '<span class="muted small">нет выписки</span>' : T(r[w])}</td>` : `<td class="c">${num(r[w], `odm.${r.ym}.${w}`)}</td>`;
   return `<section class="panel"><h2>Овердрафт: расчёт лимита</h2>
@@ -300,7 +302,7 @@ function buildConclusion(pr, v) {
   D.push({ meta: `${c.name || "Клиент"} · ${new Date().toLocaleDateString("ru-RU")} · предварительная оценка` });
   D.push({ v });
   H("1. Запрос клиента");
-  P(`${c.product || "Кредит"} на сумму ${t(c.amount)}, срок ${isOD(c) ? "кредитной линии " : ""}${c.term || "—"} мес., ставка ${isNum(c.rate) ? fmt(c.rate, "1") + " %" : "—"}. Цель — ${(c.purpose || "").toLowerCase()}.`);
+  P(`${c.product || "Кредит"} на сумму ${t(c.amount)}, срок ${isOD(c) ? "кредитной линии " : ""}${c.term || "—"} мес., ставка ${isNum(c.rate) ? fmt(c.rate, "d2") + " %" : "—"}. Цель — ${(c.purpose || "").toLowerCase()}.`);
   if (m.newPay) P(isOD(c) ? `Проценты при полном использовании лимита — около ${t(m.newPay.pay)} в месяц.` : `Ежемесячный платёж по новому кредиту — около ${t(m.newPay.pay)} (${m.newPay.note}).`);
   H("2. Финансовое положение");
   if (m.pl) {
