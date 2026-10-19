@@ -184,20 +184,21 @@ function formToLines(kind, f, prof, w) {
   }
   return out;
 }
-async function readAnyFile(file) {
+async function readAnyFile(file, onProg) {
+  if (/\.(jpe?g|png)$/i.test(file.name)) { const pdf = await OCR.image(file, onProg); return { pdf, sheets: pdfToSheets(pdf), ocr: pdf }; }
   const buf = await file.arrayBuffer();
   if (/\.pdf$/i.test(file.name)) {
-    const pdf = await PdfReader.read(buf);
-    if (pdf.noText) throw new Error("это скан без текста — сайт читает только PDF с текстовым слоем. Загрузите Excel или введите цифры вручную");
-    return { pdf, sheets: pdfToSheets(pdf) };
+    let pdf = await PdfReader.read(buf);
+    if (pdf.noText) pdf = await OCR.pdf(buf, onProg);     // скан — распознаём
+    return { pdf, sheets: pdfToSheets(pdf), ocr: pdf.ocr ? pdf : null };
   }
   return { pdf: null, sheets: await readWorkbook(buf) };
 }
 const FINKEYS_DECL = ["rev", "vat_turn", "vat_ex", "fot", "cit"];
 /* один файл: финансовая отчётность (баланс/ОПиУ/ДДС) или налоговая декларация — определяется само */
-async function importFile(file, pid, units) {
-  if (!/\.(xlsx|xlsm|xls|pdf)$/i.test(file.name)) return [{ err: "формат не подходит — нужен Excel (.xlsx, .xls) или PDF" }];
-  let r; try { r = await readAnyFile(file); } catch (e) { return [{ err: "не удалось прочитать: " + e.message }]; }
+async function importFile(file, pid, units, onProg) {
+  if (!/\.(xlsx|xlsm|xls|pdf|jpe?g|png)$/i.test(file.name)) return [{ err: "формат не подходит — нужен Excel (.xlsx, .xls), PDF или фото (JPG, PNG)" }];
+  let r; try { r = await readAnyFile(file, onProg); } catch (e) { return [{ err: "не удалось прочитать: " + e.message }]; }
   // налоговая декларация?
   let dres = null;
   try { dres = r.pdf ? (DocParse.isDecl(r.pdf) >= 3 ? { kind: "decl", decl: DocParse.parseDecl(r.pdf) } : null) : null; } catch (e) { dres = null; }
@@ -219,8 +220,9 @@ async function importFile(file, pid, units) {
   if (!parsed.length && !dres && !r.pdf) {
     try { const d = DocParse.readSheets(r.sheets); if (d.kind === "decl") dres = d; } catch (e) { /* не декларация */ }
   }
-  if (dres && dres.decl && (!parsed.length || (dres.decl.lines || []).length >= 10)) return [addDecl(dres.decl, file.name)];
-  if (!parsed.length) return [{ err: "не нашёл ни баланса, ни ОПиУ, ни ДДС, ни декларации. Нужна стандартная форма с кодами строк — или введите цифры вручную" }];
+  const scanNote = r.ocr ? ` Распознано со скана (качество ~${Math.round(r.ocr.conf)} %) — сверьте цифры с документом.` : "";
+  if (dres && dres.decl && (!parsed.length || (dres.decl.lines || []).length >= 10)) { const x = addDecl(dres.decl, file.name); x.txt += scanNote; return [x]; }
+  if (!parsed.length) return [{ err: r.ocr ? `скан распознан (качество ~${Math.round(r.ocr.conf)} %), но баланс, ОПиУ или декларацию в нём найти не удалось — нужны видимые коды строк. Попробуйте скан получше (300 dpi, ровно) или введите цифры вручную` : "не нашёл ни баланса, ни ОПиУ, ни ДДС, ни декларации. Нужна стандартная форма с кодами строк — или введите цифры вручную" }];
   // единицы
   const mx = Math.max(...parsed.map(p => p.f.max));
   let factor, why;
@@ -243,7 +245,7 @@ async function importFile(file, pid, units) {
       }
     }
     const uTxt = factor < 0.5 ? "в файле тенге — переведено в тыс. тг" : factor > 2 ? "в файле млн тг — переведено в тыс. тг" : "в файле тыс. тг";
-    rep.push({ ok: true, kind, txt: `${KIND_TXT[kind]}: ${n} строк за ${perLabel(cur)}${nPrev ? `, ${nPrev} — за ${perLabel(prev)}` : ""}. ${uTxt} (${why}).` });
+    rep.push({ ok: true, kind, txt: `${KIND_TXT[kind]}: ${n} строк за ${perLabel(cur)}${nPrev ? `, ${nPrev} — за ${perLabel(prev)}` : ""}. ${uTxt} (${why}).${scanNote}` });
   }
   X.files.unshift({ name: file.name, t: Date.now(), what: rep.map(x => KIND_TXT[x.kind]).join(", "), per: perLabel(cur) });
   return rep;

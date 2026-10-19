@@ -2,7 +2,7 @@
 /* ================================================================ Экспресс-анализ: интерфейс */
 const $ = (s, el = document) => el.querySelector(s);
 let PAGE = "card", UPL = { pid: null, units: "auto", log: [] };
-const PAGES = [["card", "Карточка клиента"], ["fin", "Финансовая отчётность"], ["an", "Анализ"], ["prob", "Проблемы"], ["concl", "Заключение"]];
+const PAGES = [["card", "Карточка клиента"], ["fin", "Финансовая отчётность"], ["an", "Анализ"], ["concl", "Заключение"]];
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2800); }
 const tip = t => `<span class="tip" title="${esc(t)}">?</span>`;
 const T = v => isNum(v) ? fmt(v) : "—";
@@ -18,11 +18,12 @@ function renderHome() {
     <div class="hero"><h1>Экспресс-анализ для КМ</h1>
       <p>Быстро понять, подходит ли клиент для финансирования, ещё до сбора полного пакета документов. Внесите данные клиента и запрос, загрузите баланс и ОПиУ — сайт сам посчитает показатели, подсветит проблемы и расхождения и напишет заключение простым языком.</p>
       <div class="row"><button class="btn primary big" data-act="new">+ Новый клиент</button><button class="btn alt big" data-act="demo">Пример для заполнения</button><button class="btn alt2 big" data-act="openfile">Открыть файл клиента</button></div></div>
-    <div class="how">${PAGES.map(([, t], i) => `<div><b><em>${i + 1}</em>${t}</b><span>${["запрос клиента и взнос по действующим кредитам", "загрузка Excel/PDF или ввод цифр, декларации", "ключевые показатели и сколько можно дать", "что не так и что уточнить у клиента", "готовый итог — скопировать или распечатать"][i]}</span></div>`).join("")}</div>
+    <div class="how">${PAGES.map(([, t], i) => `<div><b><em>${i + 1}</em>${t}</b><span>${["запрос клиента; для овердрафта — поступления по месяцам", "Excel, PDF или скан; декларации", "ключевые показатели и сколько можно дать", "готовый итог — скопировать или распечатать"][i]}</span></div>`).join("")}</div>
     <h2 style="margin-bottom:10px">Клиенты</h2>
     ${list.length ? `<div class="clist">${list.map(c => { const v = clientVerdict(c); return `<div class="citem" data-open="${c.id}"><div class="nm"><b>${esc(c.card.name || "Без названия")}${c.demo ? ' <span class="tag nd">пример</span>' : ""}</b><span class="small muted">${esc([c.card.bin, c.card.product, isNum(c.card.amount) ? fmt(c.card.amount) + " тыс. тг" : ""].filter(Boolean).join(" · "))} · изменён ${new Date(c.updated).toLocaleDateString("ru-RU")}</span></div><span class="tag ${v.sev}">${esc(v.title)}</span><button class="xbtn" title="Удалить" data-del="${c.id}">×</button></div>`; }).join("")}</div>`
       : `<div class="empty">Пока нет клиентов. Нажмите «Новый клиент» или посмотрите «Пример для заполнения».</div>`}
-    <p class="small muted" style="margin-top:20px">Данные хранятся только в этом браузере на этом компьютере и никуда не отправляются. Регистрация не нужна. Чтобы перенести клиента на другой компьютер — кнопка «Сохранить в файл» внутри клиента. Все суммы — в тыс. тенге.</p>
+    <p class="small muted" style="margin-top:24px">Данные хранятся только в этом браузере на этом компьютере и никуда не отправляются. Регистрация не нужна. Чтобы перенести клиента на другой компьютер — кнопка «Сохранить в файл» внутри клиента. Все суммы — в тыс. тенге.</p>
+    <footer class="homefoot">© 2026 Создан ОФКК Костанай</footer>
   </div><div id="toast"></div><input type="file" id="ofile" accept=".json" class="hidden">`;
 }
 function clientVerdict(c) { const keep = X; X = c; let v; try { v = verdict(problems()); } catch (e) { v = { sev: "nd", title: "—" }; } X = keep; return v; }
@@ -30,14 +31,15 @@ function clientVerdict(c) { const keep = X; X = c; let v; try { v = verdict(prob
 /* ---------------------------------------------------------------- оболочка клиента */
 function renderClient() {
   const pr = problems(), v = verdict(pr);
-  const dots = { card: X.card.name && N(X.card.amount) ? "ok" : "nd", fin: X.per.some(p => isNum(fv("rev", p.id))) ? "ok" : "nd", an: v.sev, prob: pr.some(p => p.sev === "crit") ? "crit" : pr.some(p => p.sev === "risk") ? "risk" : pr.some(p => p.sev === "chk") ? "chk" : "ok", concl: v.sev };
-  const body = { card: pageCard, fin: pageFin, an: pageAn, prob: pageProb, concl: pageConcl }[PAGE](pr, v);
+  const dots = { card: X.card.name && N(X.card.amount) ? "ok" : "nd", fin: X.per.some(p => isNum(fv("rev", p.id))) ? "ok" : "nd", an: v.sev, concl: v.sev };
+  if (PAGE === "prob") PAGE = "an";
+  const body = { card: pageCard, fin: pageFin, an: pageAn, concl: pageConcl }[PAGE](pr, v);
   document.body.innerHTML = `<div class="app"><nav class="rail">
     <div class="brand"><span>Экспресс-анализ<small>для клиентского менеджера</small></span></div>
     <div class="client"><b>${esc(X.card.name || "Новый клиент")}</b><button data-act="home">← ко всем клиентам</button></div>
     <ol class="steps">${PAGES.map(([id, t]) => `<li><button data-page="${id}"${PAGE === id ? ' aria-current="page"' : ""}>${t}<span class="dot ${dots[id]}"></span></button></li>`).join("")}</ol>
     <div class="foot"><div class="foot-save"><button class="btn ghost" style="padding-left:0" data-act="save">Сохранить в файл</button><br>Все суммы — тыс. тг. Данные только в этом браузере.</div><div class="copy">© 2026 Создан ОФКК Костанай</div></div>
-  </nav><main class="main">${body}</main></div><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf" class="hidden">`;
+  </nav><main class="main">${body}</main></div><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf,.jpg,.jpeg,.png" class="hidden">`;
   const cur = document.querySelector('.steps [aria-current="page"]'); if (cur && window.innerWidth <= 860) cur.scrollIntoView({ inline: "center", block: "nearest" });
 }
 // перерисовка с сохранением фокуса и прокрутки
@@ -48,28 +50,59 @@ function rerender() {
   if (key) { const el = document.querySelector(`[data-k="${CSS.escape(key)}"]`); if (el) { el.focus(); if (el.matches("input.num")) el.select(); else if (el.tagName === "INPUT" && /text|search/.test(el.type) && el.setSelectionRange) { const n = el.value.length; el.setSelectionRange(n, n); } } }
 }
 
-/* ---------------------------------------------------------------- 1. Карточка: запрашиваемые условия */
+/* ---------------------------------------------------------------- 1. Карточка: запрашиваемые условия (+ овердрафт) */
 function pageCard() {
-  const c = X.card, m = analyze(), lp = m.newPay;
+  const c = X.card, m = analyze(), lp = m.newPay, od = isOD(c);
   const cnum = (f, ph = "") => num(c[f], "c." + f, ph ? `placeholder="${esc(ph)}"` : "");
   const csel = (f, list) => `<select class="inp" data-k="c.${f}">${opts(list, c[f])}</select>`;
   const pe = isNum(c.payExist) ? c.payExist : ((c.loans || []).length ? m.payExist : null);
-  return `<div class="pagehead"><div class="lead"><h1>Карточка клиента</h1><p>Что просит клиент. По этим цифрам считается будущий платёж и хватит ли на него денег. Серые поля заполняете вы; суммы — в тыс. тенге.</p></div></div>
+  const box = (txt, note) => `<div class="calcbox">${txt}</div>${note ? `<span class="fnote">${note}</span>` : ""}`;
+  return `<div class="pagehead"><div class="lead"><h1>Карточка клиента</h1><p>Что просит клиент. Серые поля заполняете вы; суммы — в тыс. тенге.</p></div></div>
   <section class="panel"><h2>Запрашиваемые условия</h2><p class="hint">Взнос по действующим кредитам — примерная сумма всех платежей клиента в месяц по кредитам, займам и лизингу (со слов клиента, если справки ПКБ нет).</p>
-    <div class="grid">
+    <div class="grid g3">
       ${fld("Клиент", `<input class="inp" data-k="c.name" value="${esc(c.name || "")}" placeholder="ТОО «…» / ИП …">`, "wide")}
       ${fld("Продукт", csel("product", PRODUCTS))}
       ${fld("Цель", csel("purpose", PURPOSES))}
-      ${fld("Сумма займа, тыс. тг", cnum("amount"))}
-      ${fld("Срок, мес.", cnum("term"))}
+      ${od ? fld("Срок транша", `<select class="inp" data-k="od.tranche">${opts([["30", "до 30 дней"], ["90", "до 90 дней"]], String(odCfg().tranche))}</select>`) : fld("Погашение", csel("sched", Object.entries(SCHED)))}
+      ${fld(od ? "Сумма (лимит), тыс. тг" : "Сумма займа, тыс. тг", cnum("amount"))}
+      ${fld(od ? "Срок кредитной линии, мес." : "Срок, мес.", cnum("term"))}
       ${fld("Ставка, % годовых", cnum("rate"))}
-      ${fld("Погашение", csel("sched", Object.entries(SCHED)))}
-      ${fld("Льготный период по долгу, мес.", cnum("grace", "0"))}
-      ${fld("Взнос по действующим кредитам, тыс. тг в месяц", num(pe, "c.payExist", `placeholder="0 — если кредитов нет"`))}
-      ${fld("Платёж по новому кредиту", `<div class="calcbox">${lp ? fmt(lp.pay) + " тыс. тг в месяц" : "— укажите сумму, срок и ставку"}</div>${lp ? `<span class="small muted">${esc(lp.note)}${N(c.grace) ? `; в льготный период ~${fmt(lp.grace)} тыс. тг` : ""}</span>` : ""}`)}
-      ${fld("Все платежи в месяц", `<div class="calcbox">${lp || N(pe) ? fmt(N(pe) + (lp ? lp.pay : 0)) + " тыс. тг" : "—"}</div>`)}
+      ${od ? "" : fld("Льготный период, мес.", cnum("grace", "0"))}
+      ${fld("Взнос по действующим кредитам, тыс. тг/мес.", num(pe, "c.payExist", `placeholder="0 — если кредитов нет"`))}
+      ${od ? "" : `<div class="fld"></div>`}
+      ${fld(od ? "Проценты по овердрафту в месяц" : "Платёж по новому кредиту в месяц", box(lp ? fmt(lp.pay) + " тыс. тг" : "— укажите сумму, срок и ставку", lp ? (od ? "при полном использовании лимита" : lp.note + (N(c.grace) ? `; в льготный период ~${fmt(lp.grace)} тыс. тг` : "")) : ""))}
+      ${fld("Все платежи в месяц", box(lp || N(pe) ? fmt(N(pe) + (lp ? lp.pay : 0)) + " тыс. тг" : "—", "действующие + новый"))}
+      ${od ? fld("Расчётный лимит овердрафта", box(fmt(odCalc().limit) + " тыс. тг", "см. расчёт ниже")) : ""}
     </div></section>
+  ${od ? odPanel() : ""}
   <div class="row noprint"><button class="btn primary" data-page="fin">Дальше: финансовая отчётность →</button></div>`;
+}
+function odPanel() {
+  const d = odCalc(), o = d.o;
+  const sel = (k, list) => `<select class="inp" data-k="od.${k}">${opts(list, String(o[k]))}</select>`;
+  const onum = (k, ph = "") => num(o[k], "od." + k, ph ? `placeholder="${esc(ph)}"` : "");
+  const chk = odChecks(d);
+  return `<section class="panel"><h2>Овердрафт: расчёт лимита</h2>
+    <p class="hint">Лимит = 40 % среднемесячных очищенных поступлений за ${d.n} полных месяцев до месяца заявки — отдельно по нашему банку и по другим банкам (не более 2)${+o.tranche === 90 ? "; при транше до 90 дней — не более 100 млн тг" : ""}. Очищенные поступления — без кредитов и займов, переводов между своими счетами, конвертации, возвратов, финансовой помощи, субсидий и взносов наличными (инкассация, банкоматы и POS — учитываются).</p>
+    <div class="grid g3">
+      ${fld("Месяц заявки", `<input class="inp" type="month" data-k="od.appMonth" value="${esc(o.appMonth || ymNow())}">`)}
+      ${fld("Сезонный бизнес", sel("seasonal", ["Нет", "Да"]))}
+      ${fld("Строительство или сельское хозяйство", sel("banned", ["Нет", "Да"]))}
+      ${fld("Срок деятельности, мес.", onum("exp", `нужно от ${d.needExp}`))}
+      ${fld("Покупателей за период", onum("buyers", "не менее 3"))}
+      ${fld("Доля крупнейшего покупателя, %", onum("topShare", "до 60"))}
+      ${fld("Других банков с оборотами", onum("otherBanks", "не более 2"))}
+    </div>
+    <div class="tw" style="margin-top:16px"><table class="t odt"><thead><tr><th class="l">Месяц</th><th>Поступления в нашем банке</th><th>В других банках</th><th>Итого</th></tr></thead><tbody>
+    ${d.rows.map((r, i) => `<tr><td class="l">${ymLabel(r.ym)}</td><td class="c">${num(r.our, `odm.${r.ym}.our`)}</td><td class="c">${num(r.other, `odm.${r.ym}.other`)}</td><td class="${d.tot[i] <= 0 && d.filled ? "neg" : ""}">${T(isNum(r.our) || isNum(r.other) ? d.tot[i] : null)}</td></tr>`).join("")}
+    <tr class="tot"><td class="l">Всего за ${d.n} мес.</td><td>${T(d.sOur)}</td><td>${T(d.sOther)}</td><td>${T(d.sOur + d.sOther)}</td></tr>
+    <tr><td class="l">Среднемесячно${d.adj < 1 ? " (с ограничением крупного покупателя)" : ""}</td><td>${T(d.avgOur)}</td><td>${T(d.avgOther)}</td><td>${T(d.avgOur + d.avgOther)}</td></tr>
+    <tr class="tot"><td class="l">Лимит — 40 % от среднемесячных</td><td>${T(d.limOur)}</td><td>${T(d.limOther)}</td><td>${T(d.lim)}</td></tr>
+    </tbody></table></div>
+    <div class="odres"><div><span>Расчётный лимит</span><b>${fmt(d.limit)} тыс. тг</b>${d.capHit ? `<i>ограничен 100 млн тг (транш до 90 дней)</i>` : ""}</div><div><span>Запрашивают</span><b>${N(X.card.amount) ? fmt(X.card.amount) + " тыс. тг" : "—"}</b>${N(X.card.amount) ? `<i>${N(X.card.amount) <= d.limit + 0.5 ? "укладывается в лимит" : "больше лимита"}</i>` : ""}</div></div>
+    <h3 style="margin:18px 0 8px">Условия овердрафта</h3>
+    <div class="odchk">${chk.map(k => `<div class="${k.sev}"><span class="tag ${k.sev}">${SEVT[k.sev]}</span><b>${esc(k.t)}</b><em>${esc(k.fact)}</em></div>`).join("")}</div>
+  </section>`;
 }
 
 /* ---------------------------------------------------------------- 2. Финансовая отчётность */
@@ -124,7 +157,7 @@ function pageAn(pr, v) {
   const k = [
     kpi(m.rev > 0 ? (isNum(m.revGr) ? sevBy(m.revGr, NORM.rev_drop_chk, NORM.rev_drop_risk) : "ok") : "nd", "Выручка за год", T(m.rev), "тыс. тг", `Сколько компания продаёт за год${ann}.`, isNum(m.revGr) ? `Изменение к прошлому году: <b>${m.revGr >= 0 ? "+" : ""}${fmt(m.revGr, "p")}</b>` : "Динамику посчитать нельзя — нужен ещё один полный год."),
     kpi(!m.pl ? "nd" : m.ni > 0 ? "ok" : "risk", "Чистая прибыль", T(m.ni), "тыс. тг", m.ni > 0 ? `Компания зарабатывает: из каждых 100 тенге выручки остаётся ${fmt(m.nm * 100, "1")} тенге прибыли.` : "Компания работает в убыток.", isNum(m.gm) ? `Наценка (валовая маржа): ${fmt(m.gm, "p")}` : ""),
-    kpi(dscrSev, "Хватает ли денег на платежи", isNum(m.dscr) ? fmt(m.dscr, "x") : "—", "", isNum(m.dscr) ? `Бизнес зарабатывает ~${T(m.cashMonth)} тыс. тг в месяц, а платить по всем кредитам нужно ~${T(m.payTotal)}. Нужно не меньше ${fmt(NORM.dscr_ok, "x")}: т.е. на каждый тенге платежа — ${fmt(NORM.dscr_ok, "x")} тенге дохода.` : "Нет данных о платежах или о прибыли.", m.daKnown ? "" : "Амортизация не указана — оценка осторожная.", "DSCR = (EBITDA − КПН) / 12 ÷ платежи по всем кредитам в месяц"),
+    isOD(c) ? "" : kpi(dscrSev, "Хватает ли денег на платежи", isNum(m.dscr) ? fmt(m.dscr, "x") : "—", "", isNum(m.dscr) ? `Бизнес зарабатывает ~${T(m.cashMonth)} тыс. тг в месяц, а платить по всем кредитам нужно ~${T(m.payTotal)}. Нужно не меньше ${fmt(NORM.dscr_ok, "x")}: т.е. на каждый тенге платежа — ${fmt(NORM.dscr_ok, "x")} тенге дохода.` : "Нет данных о платежах или о прибыли.", m.daKnown ? "" : "Амортизация не указана — оценка осторожная.", "DSCR = (EBITDA − КПН) / 12 ÷ платежи по всем кредитам в месяц"),
     kpi(sevBy(m.lev, NORM.lev_ok, NORM.lev_max, false), "Долговая нагрузка", isNum(m.lev) ? fmt(m.lev, "1") : "—", "лет", isNum(m.lev) ? `За сколько лет компания могла бы погасить все долги (с новым кредитом — ${T(m.debtNew)} тыс. тг), если бы весь заработок шёл на это. Норма — до ${fmt(NORM.lev_ok, "1")}.` : "Нет данных о долгах или EBITDA.", "", "Долг / EBITDA. EBITDA — прибыль до процентов, налогов и амортизации"),
     kpi(sevBy(m.liq, NORM.liq_ok, NORM.liq_min), "Ликвидность", isNum(m.liq) ? fmt(m.liq, "x") : "—", "", "Хватает ли денег, дебиторки и запасов, чтобы закрыть долги до года. Норма — от 1.", "", "Текущие активы / текущие обязательства"),
     kpi(!isNum(m.eqr) ? "nd" : N(m.eq) < 0 ? "crit" : sevBy(m.eqr, NORM.eq_ok, NORM.eq_min), "Собственные средства", isNum(m.eqr) ? fmt(m.eqr, "p") : "—", "", "Какая часть имущества компании принадлежит ей самой, а не куплена в долг. Норма — от 20 %.", isNum(m.eq) ? `Капитал: ${T(m.eq)} тыс. тг` : ""),
@@ -133,12 +166,12 @@ function pageAn(pr, v) {
   return `<div class="pagehead"><div class="lead"><h1>Анализ</h1><p>Короткая картина: самое главное о бизнесе клиента. Цвет плашки: зелёный — норма, жёлтый — проверить, красный — риск.</p></div></div>
   <div class="verdict ${v.sev}"><div class="vicon">${v.icon}</div><div><div class="big">${esc(v.title)}</div><p>${esc(v.text)}</p></div></div>
   <div class="kpis">${k.join("")}</div>
-  <section class="panel"><h2>Сколько можно дать</h2><p class="hint">Расчёт по текущему заработку бизнеса и платежам по действующим кредитам, с запасом ${Math.round((NORM.dscr_ok - 1) * 100)} % на непредвиденное — при тех же сроке, ставке и способе погашения.</p>
+  ${isOD(c) ? odAnPanel() : `<section class="panel"><h2>Сколько можно дать</h2><p class="hint">Расчёт по текущему заработку бизнеса и платежам по действующим кредитам, с запасом ${Math.round((NORM.dscr_ok - 1) * 100)} % на непредвиденное — при тех же сроке, ставке и способе погашения.</p>
     <div class="maxsum">
       <div><span class="small muted">Запрашивают</span><div class="v">${T(c.amount)} <small class="muted">тыс. тг</small></div><span class="small">платёж ~${m.newPay ? fmt(m.newPay.pay) : "—"} в месяц</span></div>
       <div><span class="small muted">Свободно для нового платежа</span><div class="v">${isNum(m.payFree) ? T(Math.max(0, m.payFree)) : "—"} <small class="muted">тыс. тг / мес.</small></div><span class="small">заработок ${T(m.cashMonth)} − платежи ${T(m.payExist)}, с запасом</span></div>
       <div><span class="small muted">Максимальная сумма по доходам</span><div class="v">${isNum(m.maxAmt) ? T(Math.floor(m.maxAmt / 100) * 100) : "—"} <small class="muted">тыс. тг</small></div><span class="small">${isNum(m.maxAmt) && N(c.amount) ? (m.maxAmt >= N(c.amount) ? "запрос укладывается" : "запрос больше — " + (m.maxAmt > 0 ? "снизить сумму или увеличить срок" : "доходов не хватает")) : ""}</span></div>
-    </div></section>
+    </div></section>`}
   <section class="panel"><h2>Ключевые цифры</h2><p class="hint">Тыс. тг, как в отчётности (неполный год — с начала года, без пересчёта).</p>
     <div class="tw"><table class="t"><thead><tr><th class="l">Показатель</th>${X.per.map(p => `<th>${esc(perLabel(p))}</th>`).join("")}</tr></thead><tbody>
     ${keyRows.map(([t, f]) => `<tr><td class="l">${t}</td>${X.per.map(p => { const x = f(p); return `<td class="${isNum(x) && x < 0 ? "neg" : ""}">${T(x)}</td>`; }).join("")}</tr>`).join("")}
@@ -151,18 +184,17 @@ function pageAn(pr, v) {
       <tr class="tot"><td class="l">Все платежи</td><td>${T(m.payTotal)}</td></tr>
       <tr class="tot"><td class="l">Остаётся после платежей</td><td class="${m.cashMonth - m.payTotal < 0 ? "neg" : ""}">${isNum(m.cashMonth) ? T(m.cashMonth - m.payTotal) : "—"}</td></tr>
     </tbody></table></div>${isNum(m.ocf) ? `<p class="small muted" style="margin-top:8px">По ДДС поток от основной деятельности — ${T(m.ocf)} тыс. тг в год (${T(m.ocf / 12)} в месяц).</p>` : ""}</section>
-  <div class="row noprint"><button class="btn primary" data-page="prob">Дальше: проблемы →</button></div>`;
+  <div class="row noprint"><button class="btn primary" data-page="concl">Дальше: заключение →</button></div>`;
 }
 
-/* ---------------------------------------------------------------- 4. Проблемы */
-function pageProb(pr) {
-  const cnt = s => pr.filter(p => p.sev === s).length;
-  const groups = [["crit", "Стоп-факторы"], ["risk", "Риски"], ["chk", "Проверить и уточнить"], ["nd", "Не хватает данных"]];
-  return `<div class="pagehead"><div class="lead"><h1>Проблемы и расхождения</h1><p>Что сайт нашёл в данных клиента. У каждой проблемы — объяснение простым языком и что сделать. Расхождения — это когда цифры из разных источников не совпадают (баланс и список кредитов, отчётность и декларация).</p></div></div>
-  <div class="cnt">${groups.map(([s, t]) => `<span class="tag ${s}">${t}: ${cnt(s)}</span>`).join("")}</div>
-  ${pr.length ? groups.map(([s, t]) => { const L = pr.filter(p => p.sev === s); return L.length ? `<h2 style="margin:18px 0 10px">${t}</h2>` + L.map(p => `<div class="prob ${p.sev}"><div class="hd"><span class="tag ${p.sev}">${SEVT[p.sev]}</span><b>${esc(p.title)}</b><span class="area">${esc(p.area)}</span></div><p class="why">${esc(p.why)}</p>${p.todo ? `<div class="todo">${esc(p.todo)}</div>` : ""}</div>`).join("") : ""; }).join("")
-    : `<div class="verdict ok"><div class="vicon">✓</div><div><div class="big">Проблем не найдено</div><p>По введённым данным критичных моментов и расхождений нет.</p></div></div>`}
-  <div class="row noprint" style="margin-top:14px"><button class="btn primary" data-page="concl">Дальше: заключение →</button></div>`;
+function odAnPanel() {
+  const d = odCalc(), a = N(X.card.amount);
+  return `<section class="panel"><h2>Лимит овердрафта</h2><p class="hint">40 % среднемесячных очищенных поступлений за ${d.n} мес. до месяца заявки${d.adj < 1 ? "; поступления крупнейшего покупателя учтены не более 60 %" : ""}. Подробный расчёт — в «Карточке клиента».</p>
+    <div class="maxsum">
+      <div><span class="small muted">Запрашивают</span><div class="v">${T(a)} <small class="muted">тыс. тг</small></div><span class="small">${odCfg().tranche == 90 ? "транш до 90 дней" : "транш до 30 дней"}</span></div>
+      <div><span class="small muted">Среднемесячные поступления</span><div class="v">${T(d.avgOur + d.avgOther)} <small class="muted">тыс. тг</small></div><span class="small">наш банк ${T(d.avgOur)} · другие ${T(d.avgOther)}</span></div>
+      <div><span class="small muted">Расчётный лимит</span><div class="v">${T(Math.floor(d.limit / 100) * 100)} <small class="muted">тыс. тг</small></div><span class="small">${!a ? "" : a <= d.limit + 0.5 ? "запрос укладывается" : "запрос больше лимита — снизить сумму"}</span></div>
+    </div></section>`;
 }
 
 /* ---------------------------------------------------------------- 5. Заключение: готовый документ, без редактирования */
@@ -193,8 +225,8 @@ function buildConclusion(pr, v) {
   D.push({ meta: `${c.name || "Клиент"} · ${new Date().toLocaleDateString("ru-RU")} · предварительная оценка` });
   D.push({ v });
   H("1. Запрос клиента");
-  P(`${c.product || "Кредит"} на сумму ${t(c.amount)}, срок ${c.term || "—"} мес., ставка ${isNum(c.rate) ? fmt(c.rate, "1") + " %" : "—"}. Цель — ${(c.purpose || "").toLowerCase()}.`);
-  if (m.newPay) P(`Ежемесячный платёж по новому кредиту — около ${t(m.newPay.pay)} (${m.newPay.note}).`);
+  P(`${c.product || "Кредит"} на сумму ${t(c.amount)}, срок ${isOD(c) ? "кредитной линии " : ""}${c.term || "—"} мес., ставка ${isNum(c.rate) ? fmt(c.rate, "1") + " %" : "—"}. Цель — ${(c.purpose || "").toLowerCase()}.`);
+  if (m.newPay) P(isOD(c) ? `Проценты при полном использовании лимита — около ${t(m.newPay.pay)} в месяц.` : `Ежемесячный платёж по новому кредиту — около ${t(m.newPay.pay)} (${m.newPay.note}).`);
   H("2. Финансовое положение");
   if (m.pl) {
     P(`Выручка за ${perLabel(m.pl)} — ${t(fv("rev", m.pl.id))}${m.k !== 1 ? ` (в пересчёте на год около ${t(m.rev)})` : ""}${isNum(m.revGr) ? `; ${m.revGr >= 0 ? "рост" : "снижение"} на ${fmt(Math.abs(m.revGr), "p")} к прошлому году` : ""}.`);
@@ -206,14 +238,24 @@ function buildConclusion(pr, v) {
     if (isNum(m.liq)) P(`Ликвидность ${fmt(m.liq, "x")} — ${m.liq >= NORM.liq_ok ? "текущих активов хватает на погашение долгов до года" : "текущих активов не хватает на погашение долгов до года"}.`);
   }
   if (isNum(m.ocf)) P(`По отчёту о движении денег поток от основной деятельности — ${t(m.ocf)} в год.`);
-  H("3. Платёжеспособность");
-  P(m.payKnown ? `Взнос по действующим кредитам — около ${t(m.payExist)} в месяц.` : "Взнос по действующим кредитам не указан.");
-  if (isNum(m.dscr)) {
-    P(`Бизнес зарабатывает около ${t(m.cashMonth)} в месяц; со всеми платежами, включая новый кредит, нужно платить ${t(m.payTotal)} в месяц. Покрытие платежей ${fmt(m.dscr, "x")} (норма от ${fmt(NORM.dscr_ok, "x")}) — ${m.dscr >= NORM.dscr_ok ? "денег хватает с запасом" : m.dscr >= 1 ? "денег хватает впритык" : "денег не хватает"}.`);
-    if (isNum(m.maxAmt) && N(c.amount)) P(m.maxAmt >= N(c.amount) ? `Запрошенная сумма укладывается в возможности клиента (по доходам — до ${t(Math.floor(m.maxAmt / 100) * 100)}).` : m.maxAmt > 0 ? `По доходам клиент может обслуживать кредит примерно до ${t(Math.floor(m.maxAmt / 100) * 100)} на тех же условиях — это меньше запрошенного.` : "При текущих доходах новый кредит клиенту не по силам.");
+  if (isOD(c)) {
+    const d = odCalc();
+    H("3. Лимит овердрафта");
+    P(`Очищенные поступления за ${d.n} мес. до месяца заявки: в нашем банке ${t(d.sOur)}, в других банках ${t(d.sOther)}; среднемесячно ${t(d.avgOur + d.avgOther)}${d.adj < 1 ? " (поступления крупнейшего покупателя учтены не более 60 %)" : ""}.`);
+    P(`Расчётный лимит — ${t(Math.floor(d.limit / 100) * 100)}${d.capHit ? " (ограничен 100 млн тг при транше до 90 дней)" : ""}. ${N(c.amount) ? (N(c.amount) <= d.limit + 0.5 ? "Запрошенная сумма укладывается в лимит." : `Запрошено ${t(c.amount)} — больше лимита.`) : ""}`);
+    P(`Транш до ${odCfg().tranche} дней, срок кредитной линии ${c.term || "—"} мес. ${m.payKnown ? `Взнос по действующим кредитам — около ${t(m.payExist)} в месяц.` : ""}`);
+    P("Условия овердрафта:");
+    for (const k of odChecks(d)) LI(`${k.t}: ${k.fact.replace(/\.$/, "")}.`, k.sev);
+  } else {
+    H("3. Платёжеспособность");
+    P(m.payKnown ? `Взнос по действующим кредитам — около ${t(m.payExist)} в месяц.` : "Взнос по действующим кредитам не указан.");
+    if (isNum(m.dscr)) {
+      P(`Бизнес зарабатывает около ${t(m.cashMonth)} в месяц; со всеми платежами, включая новый кредит, нужно платить ${t(m.payTotal)} в месяц. Покрытие платежей ${fmt(m.dscr, "x")} (норма от ${fmt(NORM.dscr_ok, "x")}) — ${m.dscr >= NORM.dscr_ok ? "денег хватает с запасом" : m.dscr >= 1 ? "денег хватает впритык" : "денег не хватает"}.`);
+      if (isNum(m.maxAmt) && N(c.amount)) P(m.maxAmt >= N(c.amount) ? `Запрошенная сумма укладывается в возможности клиента (по доходам — до ${t(Math.floor(m.maxAmt / 100) * 100)}).` : m.maxAmt > 0 ? `По доходам клиент может обслуживать кредит примерно до ${t(Math.floor(m.maxAmt / 100) * 100)} на тех же условиях — это меньше запрошенного.` : "При текущих доходах новый кредит клиенту не по силам.");
+    }
+    if (isNum(m.lev)) P(`Все долги с новым кредитом — ${t(m.debtNew)}, это ${fmt(m.lev, "1")} годового заработка (норма до ${fmt(NORM.lev_ok, "1")}).`);
   }
-  if (isNum(m.lev)) P(`Все долги с новым кредитом — ${t(m.debtNew)}, это ${fmt(m.lev, "1")} годового заработка (норма до ${fmt(NORM.lev_ok, "1")}).`);
-  H("4. Проблемы и расхождения");
+  H("4. Замечания");
   const serious = pr.filter(p => p.sev !== "ok");
   if (serious.length) serious.forEach(p => LI(`${p.title}. ${p.why}`, p.sev));
   else P("Существенных проблем и расхождений не выявлено.");
@@ -221,6 +263,7 @@ function buildConclusion(pr, v) {
   if (v.sev === "crit") P("Заявку дальше не вести до устранения стоп-факторов. Сообщить клиенту о причинах.");
   else if (v.sev === "nd") P("Дособрать данные и повторить экспресс-анализ.");
   else if (v.sev === "ok") P("Клиент предварительно соответствует требованиям. Запросить полный пакет документов и передать на анализ.");
+  else if (isOD(c)) { const d = odCalc(); P(`Клиента можно рассматривать при условии: ${N(c.amount) > d.limit + 0.5 && d.limit > 0 ? `лимит не более ${t(Math.floor(d.limit / 100) * 100)}` : "закрытие вопросов ниже"}.`); }
   else P(`Клиента можно рассматривать при условии: ${isNum(m.maxAmt) && N(c.amount) > m.maxAmt && m.maxAmt > 0 ? `снижение суммы до ${t(Math.floor(m.maxAmt / 100) * 100)} или увеличение срока` : "закрытие вопросов ниже"}.`);
   const todos = [...new Set(pr.filter(p => p.todo && p.sev !== "ok").map(p => p.todo))];
   if (todos.length) { P("Что запросить или уточнить у клиента:"); todos.forEach(x => LI(x)); }

@@ -590,5 +590,48 @@ const PdfReader = (() => {
     const chars = out.reduce((a, p) => a + p.lines.reduce((b, l) => b + l.text.length, 0), 0);
     return { pages: out, encrypted: !!doc.encrypted, noText: chars < 30, noUni, nPages: doc.pages.length };
   }
-  return { read, _test: { md5, rc4, parseCMap, layout } };
+  /* ---------- сканы: картинка каждой страницы (самое крупное изображение) — для распознавания текста */
+  async function pageImages(buf) {
+    const doc = await openDoc(buf), R = doc.R, out = [];
+    for (const pg of doc.pages) {
+      let best = null;
+      const scan = (res, depth) => {
+        res = R(res) || {}; const xr = R(res.XObject) || {};
+        for (const k of Object.keys(xr)) {
+          const x = R(xr[k]); if (!x || !x.stream) continue;
+          const d = x.dict;
+          if (d.Subtype === "/Image") { const area = (+R(d.Width) || 0) * (+R(d.Height) || 0); if (!best || area > best.area) best = { x, area }; }
+          else if (d.Subtype === "/Form" && depth < 3) scan(d.Resources, depth + 1);
+        }
+      };
+      scan(pg.res, 0);
+      if (!best) { out.push(null); continue; }
+      const so = best.x, dd = so.dict;
+      let d = doc.b.subarray(so.s, so.e);
+      if (doc.crypt) d = await decryptData(doc.crypt, so.n, so.g, d);
+      let f = R(dd.Filter), prm = R(dd.DecodeParms);
+      if (!Array.isArray(f)) f = f ? [f] : []; if (!Array.isArray(prm)) prm = [prm];
+      let type = "raw", ccp = null;
+      for (let i = 0; i < f.length; i++) {
+        const fn = f[i], p = R(prm[i]);
+        if (fn === "/FlateDecode" || fn === "/Fl") d = unpredict(await inflate(d), p);
+        else if (fn === "/LZWDecode" || fn === "/LZW") d = unpredict(lzw(d, p?.EarlyChange ?? 1), p);
+        else if (fn === "/ASCII85Decode" || fn === "/A85") d = a85(d);
+        else if (fn === "/ASCIIHexDecode" || fn === "/AHx") d = ahex(d);
+        else if (fn === "/RunLengthDecode" || fn === "/RL") d = rle(d);
+        else if (fn === "/DCTDecode" || fn === "/DCT") { type = "jpeg"; break; }
+        else if (fn === "/JPXDecode") { type = "jpx"; break; }
+        else if (fn === "/CCITTFaxDecode" || fn === "/CCF") { type = "ccitt"; ccp = {}; for (const [k2, v2] of Object.entries(p || {})) ccp[k2] = R(v2); break; }
+        else if (fn === "/JBIG2Decode") { type = "jbig2"; break; }
+        else { type = "unknown"; break; }
+      }
+      let cs = R(dd.ColorSpace), pal = null, base = cs;
+      if (Array.isArray(cs) && cs[0] === "/Indexed") { base = R(cs[1]); const lk = R(cs[3]); pal = lk instanceof Uint8Array ? lk : lk && lk.stream ? await doc.stream(lk) : typeof lk === "string" ? Uint8Array.from(lk, c => c.charCodeAt(0) & 255) : null; }
+      if (Array.isArray(base) && base[0] === "/ICCBased") { const icc = R(base[1]); const n = icc && icc.dict ? +R(icc.dict.N) : 3; base = n === 1 ? "/DeviceGray" : n === 4 ? "/DeviceCMYK" : "/DeviceRGB"; }
+      const decode = R(dd.Decode);
+      out.push({ type, data: d, w: +R(dd.Width) || 0, h: +R(dd.Height) || 0, bpc: +R(dd.BitsPerComponent) || (dd.ImageMask ? 1 : 8), cs: typeof base === "string" ? base : "/DeviceRGB", pal, mask: !!R(dd.ImageMask), invert: Array.isArray(decode) && +R(decode[0]) === 1, rot: (+R(pg.rot) || 0) % 360, parms: ccp });
+    }
+    return out;
+  }
+  return { read, pageImages, _test: { md5, rc4, parseCMap, layout } };
 })();

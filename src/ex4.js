@@ -24,6 +24,8 @@ function onChange(el) {
     if (arr === "coll" && f === "type") o.disc = COLL[raw] ?? o.disc;
   }
   else if (parts[0] === "f") { setFv(parts[1], parts[2], nval()); }
+  else if (parts[0] === "od") { const o = odCfg(), f = parts[1]; o[f] = ["exp", "buyers", "topShare", "otherBanks"].includes(f) ? nval() : f === "tranche" ? +raw : raw; }
+  else if (parts[0] === "odm") { const o = odCfg(), ym = parts[1]; o.m[ym] = o.m[ym] || {}; const v = nval(); if (isNum(v)) o.m[ym][parts[2]] = v; else delete o.m[ym][parts[2]]; }
   else if (parts[0] === "p") { const p = X.per[+parts[1]]; if (parts[2] === "months") { const v = nval(); p.months = isNum(v) && v >= 1 && v <= 12 ? Math.round(v) : 12; } else p.date = raw; }
   else if (parts[0] === "d") {
     const d = X.decl[+parts[1]], f = parts[2];
@@ -100,6 +102,10 @@ function demoClient() {
     product: "Кредит", purpose: "Пополнение оборотных средств",
     amount: 40000, term: 36, rate: 19.5, sched: "ann", grace: 0, payExist: 2520,
   });
+  // данные для овердрафта (если в примере выбрать продукт «Овердрафт»)
+  const od = odCfg(c.card); od.appMonth = ymNow(); od.exp = 120; od.buyers = 14; od.topShare = 22; od.otherBanks = 1;
+  const ours = [31200, 28700, 34500, 36100, 29800, 33400], others = [9800, 11200, 10400, 12100, 9300, 10900];
+  odWindow(od).forEach((ym, i) => { od.m[ym] = { our: ours[i], other: others[i] }; });
   const F = {
     cash: [18400, 22700], ar: [61300, 92400], inv: [88700, 96200], oca: [7900, 8400], fa: [54600, 69260],
     ap: [52100, 63800], debt_st: [38000, 46000], debt_lt: [42500, 49300], ol: [9800, 10560], eq: [88500, 119300], re: [78500, 109300],
