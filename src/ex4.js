@@ -58,6 +58,9 @@ async function handleFiles(files) {
     for (const r of rep) UPL.log.unshift({ file: f.name, ...r });
   }
   UPL.log = UPL.log.slice(0, 12);
+  // периоды без единой цифры (например, заготовки «2024», «2025») убираем, если данные легли в другие
+  const hasData = p => Object.keys(X.fin).some(k => isNum(X.fin[k][p.id]));
+  if (X.per.some(hasData) && X.per.length > 1) X.per = X.per.filter(hasData);
   touch(); saveAll(true); rerender();
   toast(UPL.log.some(r => r.ask) ? "Для документа без даты выберите период" : "Готово — проверьте цифры в таблицах");
 }
