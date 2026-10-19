@@ -286,6 +286,16 @@ table.odt td.c .inp { min-width: 140px; }
 
 /* подвал главной */
 .homefoot { margin-top: 28px; padding-top: 14px; border-top: 1.5px solid var(--platinum); font-family: var(--sys); font-size: 11.5px; color: var(--graphite); }
+
+/* овердрафт: выписки */
+table.t td.auto { background: var(--lime-soft); color: var(--lime-ink); font-weight: 500; }
+table.odex tr.zero td { color: #A5A5A5; }
+details.ops { margin-top: 16px; }
+details.ops summary { cursor: pointer; color: var(--azure); font-weight: 500; }
+table.ops td.purp { max-width: 420px; white-space: normal; font-size: 12.5px; }
+table.ops td { vertical-align: top; }
+table.ops td.c select.inp { min-width: 210px; }
+table.ops tr.man td { background: var(--azure-soft); }
 </style></head>
 <body><script>window.SPEC = {"mapping":[["B","cash","010","02","Z","","01"],["B","stinv","011,012,013,014,015","03","Z","Краткосрочные финансовые активы","02"],["B","ar","016","04","Z","Торговая (в форме МСБ — вся краткосрочная) дебиторская задолженность","03"],["B","oar","017,018,#авансы выданные,#дебиторская задолженность работников","","Z","ДЗ по аренде, активы по договорам; авансы выданные и ДЗ работников — из расшифровки «в том числе», если она есть",""],["B","inv","020","05","Z","","04"],["B","taxa","019,#налог на добавленную стоимость,#прочие налоги и другие обязательные платежи","06","Z","Текущий подоходный налог; НДС и прочие налоги — из расшифровки «в том числе»",""],["B","oca","021,022,101,-#авансы выданные,-#дебиторская задолженность работников,-#налог на добавленную стоимость,-#прочие налоги и другие обязательные платежи","07,08","Z","Биоактивы, прочие КА, активы для продажи — за вычетом статей расшифровки, перенесённых выше",""],["B","ppe","121,122","15","Z","Основные средства и актив в форме права пользования","07"],["B","intang","125","18","Z","","08"],["B","ltinv","110,111,112,113,114,115,116","10,12,13","Z","Долгосрочные финансовые активы и инвестиции","05"],["B","olta","117,118,119,120,123,124,126,127","11,14,16,17,19,20","Z","Долгосрочная ДЗ, инвестиционное имущество, биоактивы, ОНА, прочие","06,09"],["B","ta_rep","100,101,200","21","B","Итог активов (контроль)","10"],["B","stloan","210","24","Z","Краткосрочные финансовые обязательства по амортизированной стоимости (займы)","11"],["B","cpltd","218","","Z","Краткосрочная задолженность по аренде (учитывается как долг)",""],["B","ap","214","27","Z","Торговая и прочая кредиторская задолженность","15"],["B","adv","219,#авансы полученные","","Z","Обязательства по договорам с покупателями + авансы полученные из расшифровки",""],["B","taxl","216,#обязательства по налогам","25","Z","Подоходный налог + налоги из расшифровки «в том числе»","12"],["B","ocl","211,212,213,215,217,220,221,222,301,-#авансы полученные,-#обязательства по налогам","26,28,29","Z","Прочие КО, вознаграждения работникам, дивиденды — за вычетом статей расшифровки, перенесённых выше",""],["B","cl_rep","300,301","23","B","Итог КО (контроль)",""],["B","ltloan","310","31","Z","Долгосрочные финансовые обязательства (займы)","13"],["B","lease","318","","Z","Долгосрочная задолженность по аренде",""],["B","oltl","311,312,313,314,315,316,317,319,320,321","32,33,34,35","Z","","14"],["B","ltl_rep","400","30","B","Итог ДО (контроль)",""],["B","sc","410","37","Z","","17"],["B","re","414","42","Z","","19"],["B","oeq","411,412,413,415,421","38,39,40,41,43","Z","Эмиссионный доход, выкупленные акции, резервы, неоплаченный капитал, доля неконтролирующих","18,20"],["B","eq_rep","500","36","B","Итог капитала (контроль)","21"],["P","rev","010","010","Z","","01"],["P","cogs","*011","*020","Z","* — по модулю: расходы в форме могут быть и со знаком «−», и без","*05"],["P","selling","*013","*060","Z","",""],["P","admin","*014","*070","Z","","*06,*07"],["P","ooi","016","","Z","","03"],["P","ooe","*015","","Z","","*09"],["P","fin_inc","021","040","Z","","02"],["P","int","*022","*080","Z","Финансовые расходы (включают % по аренде)","*08"],["P","onoi_in","023,024","050,100","Z","Доля в прибыли ассоциированных + прочие неоперационные доходы",""],["P","onoi_out","*025","*090","Z","Прочие неоперационные расходы (по модулю)",""],["P","cit","100,!200","130,!150","Z","КПН = прибыль до налога − прибыль после налога: знак строки налога не важен","*12"],["P","ni_rep","200","150,!120","B","Прибыль от продолжающейся деятельности (контроль)","13"],["P","da","","","B","Нет в ф.2 — ввести вручную (расшифровка / ф.3 косвенным методом)","*07"],["P","nonrec","","","B","Вручную",""],["P","div","","","B","Вручную (отчёт об изменениях в капитале / решения участников)",""],["P","fot","","","B","Вручную (расшифровка)",""],["C","cf011","011","11,12","Z","","11,12"],["C","cf012","012","","Z","",""],["C","cf013","013","13","Z","","13"],["C","cf014","014","","Z","",""],["C","cf015","015","14","Z","","14"],["C","cf016","016","15","Z","","15"],["C","cf021","*021","*21","Z","","*21"],["C","cf022","*022","*22","Z","","*22"],["C","cf023","*023","*23","Z","","*23"],["C","cf024","*024","*24","Z","","*24"],["C","cf025","*025","","Z","",""],["C","cf026","*026","*25,*26","Z","","*25,*26"],["C","cf027","*027","*27","Z","","*27"],["C","cf041","041","41","Z","","41"],["C","cf042","042","42","Z","","42"],["C","cf043","043","43","Z","","43"],["C","cf044","044","44","Z","","44"],["C","cf045","045","","Z","",""],["C","cf046","046","","Z","",""],["C","cf047","047","45","Z","","45"],["C","cf048","048","46","Z","","46"],["C","cf049","049","","Z","",""],["C","cf050","050","","Z","",""],["C","cf051","051","47","Z","","47"],["C","cf061","*061","*51","Z","","*51"],["C","cf062","*062","*52","Z","","*52"],["C","cf063","*063","*53","Z","","*53"],["C","cf064","*064","","Z","",""],["C","cf065","*065","","Z","",""],["C","cf066","*066","","Z","",""],["C","cf067","*067","","Z","",""],["C","cf068","*068","","Z","",""],["C","cf069","*069","*54","Z","","*54"],["C","cf070","*070","*55","Z","","*55"],["C","cf071","*071","*56","Z","","*56"],["C","cf072","*072","","Z","",""],["C","cf073","*073","*57","Z","","*57"],["C","cf091","091","71","Z","","71"],["C","cf092","092","72","Z","","72"],["C","cf093","093","73","Z","","73"],["C","cf094","094","74","Z","","74"],["C","cf101","*101","*81","Z","","*81"],["C","cf102","*102","","Z","",""],["C","cf103","*103","*83","Z","","*83"],["C","cf104","*104","*82","Z","","*82"],["C","cf105","*105","*84","Z","","*84"],["C","cf120","120","","Z","",""],["C","cf140","140","110","B","","110"],["C","cf150r","150","120","B","","120"]],"signs":[["B","денежные","010","02","01"],["B","запасы","020","05","04"],["B","основные средства","121","15","07"],["B","кредиторская","214","27",""],["B","нераспределенная","414","42","19"],["B","уставный","410","37","17"],["P","себестоимость","011","020",""],["P","реализаци","013","060","01"],["P","административные","014","070",""],["P","расход","022","080","08"],["C","приобретение основных","061","51","51"],["C","получение займов","092","72","72"],["C","погашение займов","101","81","81"],["C","на конец","150","120","120"],["C","на начало","140","110","110"]],"kw":{"B":"бухгалтерский баланс;финансовом положении;балансовый отчет;statement of financial position;balance sheet","P":"прибылях и убытках;прибыли и убытке;совокупном доходе;доходах и расходах;прибыли или убытке;profit or loss;income statement;comprehensive income","C":"движении денежных средств;движения денежных средств;денежных потоках;cash flows","X":"изменениях в капитале;изменения в капитале;changes in equity;пояснительная записка","skipcol":"прим"}};</script>
 <script>"use strict";
@@ -2526,7 +2536,7 @@ function verdict(probs) {
    доля одного покупателя больше 60 % — его поступления берутся не более 60 %. */
 const OD_CAP = 100000;   // тыс. тг
 const isOD = (c = X.card) => c.product === "Овердрафт";
-function odCfg(c = X.card) { c.od = Object.assign({ tranche: 30, seasonal: "Нет", appMonth: "", exp: null, buyers: null, topShare: null, otherBanks: null, banned: "Нет", m: {} }, c.od || {}); c.od.m = c.od.m || {}; return c.od; }
+function odCfg(c = X.card) { c.od = Object.assign({ tranche: 30, seasonal: "Нет", appMonth: "", exp: null, buyers: null, topShare: null, otherBanks: null, banned: "Нет", m: {}, st: [], stWhere: "our" }, c.od || {}); c.od.m = c.od.m || {}; c.od.st = c.od.st || []; return c.od; }
 const ymNow = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; };
 const MON = ["январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"];
 const ymLabel = ym => { const [y, m] = ym.split("-"); return `${MON[+m - 1]} ${y}`; };
@@ -2536,31 +2546,130 @@ function odWindow(o = odCfg()) {
   return out;
 }
 function odCalc() {
-  const o = odCfg(), win = odWindow(o), n = win.length;
-  const rows = win.map(ym => ({ ym, our: o.m[ym]?.our ?? null, other: o.m[ym]?.other ?? null }));
+  const o = odCfg(), win = odWindow(o), n = win.length, S = odStatements(o, win);
+  // по каждой группе: если есть выписки — суммы из выписок, иначе — внесённые вручную
+  const val = (ym, w) => S[w].has ? (S[w].months[ym].covered ? S[w].months[ym].net : null) : (o.m[ym]?.[w] ?? null);
+  const rows = win.map(ym => ({ ym, our: val(ym, "our"), other: val(ym, "other"), nOps: S.our.has || S.other.has ? N(S.our.months[ym].n) + N(S.other.months[ym].n) : null }));
   const filled = rows.filter(r => isNum(r.our) || isNum(r.other)).length;
   const sOur = sum(rows.map(r => r.our)), sOther = sum(rows.map(r => r.other));
-  const share = isNum(o.topShare) ? o.topShare / 100 : 0, adj = share > 0.6 ? 1 - 0.4 * share : 1;   // ограничение крупного покупателя
-  const avgOur = sOur * adj / n, avgOther = (N(o.otherBanks) > 2 ? 0 : sOther * adj) / n;
+  // покупатели: по выпискам — сами; иначе — со слов клиента
+  const auto = S.our.has || S.other.has;
+  const allCp = new Map(); for (const w of ["our", "other"]) for (const [k, x] of S[w].cps) { const y = allCp.get(k) || { name: x.name, v: 0 }; y.v += x.v; allCp.set(k, y); }
+  const cpl = [...allCp.values()].sort((a, b) => b.v - a.v), cpTot = sum(cpl.map(x => x.v));
+  const buyers = auto ? cpl.length : o.buyers, topShare = auto ? (cpTot ? cpl[0].v / cpTot * 100 : null) : o.topShare;
+  const otherBanks = S.other.has ? S.other.banks.size : o.otherBanks;
+  const share = isNum(topShare) ? topShare / 100 : 0, adj = share > 0.6 ? 1 - 0.4 * share : 1;
+  const grpAvg = (w, s) => S[w].has ? Math.max(0, s - S[w].cut) / n : s * adj / n;
+  const avgOur = grpAvg("our", sOur), avgOther = N(otherBanks) > 2 ? 0 : grpAvg("other", sOther);
   const limOur = 0.4 * avgOur, limOther = 0.4 * avgOther, lim = limOur + limOther;
   const limit = +o.tranche === 90 ? Math.min(lim, OD_CAP) : lim;
   const tot = rows.map(r => N(r.our) + N(r.other)), avgAll = sum(tot) / n;
+  const cutAny = S.our.cut + S.other.cut > 0 || (!auto && adj < 1);
   return { o, win, n, rows, filled, sOur, sOther, adj, share, avgOur, avgOther, limOur, limOther, lim, limit, capHit: +o.tranche === 90 && lim > OD_CAP, tot, avgAll,
-    zero: tot.filter(v => v <= 0).length, low: tot.filter(v => v > 0 && v < 0.3 * avgAll).length, needExp: o.seasonal === "Да" || +o.tranche === 90 ? 12 : 6 };
+    zero: tot.filter(v => v <= 0).length, low: tot.filter(v => v > 0 && v < 0.3 * avgAll).length, needExp: o.seasonal === "Да" || +o.tranche === 90 ? 12 : 6,
+    S, auto, cpl, cpTot, buyers, topShare, otherBanks, cutAny,
+    uncovered: rows.filter(r => (S.our.has && r.our === null) || (S.other.has && r.other === null)).length,
+    fewOps: auto ? rows.filter(r => r.nOps < 3).length : null };
 }
 // проверки по условиям овердрафта: [статус, условие, факт, что сделать]
 function odChecks(d = odCalc()) {
   const o = d.o, c = X.card, out = [], add = (sev, t, fact, todo) => out.push({ sev, t, fact, todo });
-  if (!d.filled) { add("nd", "Поступления за период", `не внесены поступления за ${d.n} мес.`, "Внесите очищенные поступления по месяцам в «Карточке клиента»."); return out; }
+  if (!d.filled) { add("nd", "Поступления за период", `нет поступлений за ${d.n} мес.`, "Загрузите выписки по счетам или внесите очищенные поступления по месяцам в «Карточке клиента»."); return out; }
   add(isNum(o.exp) ? (o.exp >= d.needExp ? "ok" : "crit") : "nd", `Срок деятельности не менее ${d.needExp} мес.`, isNum(o.exp) ? `${o.exp} мес.` : "не указан", `Нужно не меньше ${d.needExp} мес.${d.needExp === 12 ? " (сезонный бизнес или транш до 90 дней)" : ""}.`);
   add(d.zero ? "crit" : d.low ? "chk" : "ok", "Стабильные поступления каждый месяц", d.zero ? `месяцев без поступлений: ${d.zero}` : d.low ? `месяцев с очень малыми поступлениями: ${d.low}` : "поступления есть каждый месяц", d.zero ? "При сезонном бизнесе отметьте «Сезонный бизнес: Да» (период 12 мес.); проверьте, все ли счета учтены." : "Уточнить причину провала поступлений.");
-  add(isNum(o.buyers) ? (o.buyers >= 3 ? "ok" : "crit") : "nd", "Не менее 3 покупателей", isNum(o.buyers) ? `${o.buyers}` : "не указано", "Нужно минимум 3 покупателя за период.");
-  if (isNum(o.topShare)) add(o.topShare > 60 ? "chk" : "ok", "Доля одного покупателя не более 60 %", `${fmt(o.topShare, "1")} %`, "Лимит уже рассчитан с ограничением: от этого покупателя учтено не более 60 % поступлений.");
-  if (d.sOther > 0) add(N(o.otherBanks) > 2 ? "crit" : isNum(o.otherBanks) ? "ok" : "nd", "Обороты в других банках — не более 2 банков", isNum(o.otherBanks) ? `банков: ${o.otherBanks}` : "не указано", "Учитываются обороты не более чем в 2 других банках; условие — перевод 90 % оборотов в наш банк в течение 3 месяцев.");
+  if (d.auto && d.uncovered) add("chk", "Выписки за все месяцы периода", `нет выписки за месяцев: ${d.uncovered}`, "Загрузите выписки за весь период — месяцы без выписки в расчёт не попали.");
+  if (d.auto && d.S.our.noRate.length + d.S.other.noRate.length) add("chk", "Курс для валютных счетов", "не указан курс — валютная выписка не учтена", "Укажите курс к тенге у валютной выписки.");
+  if (d.auto) add(d.fewOps > (d.n === 12 ? 2 : 1) ? "crit" : d.fewOps ? "chk" : "ok", "Поступления не реже 3 раз в месяц", d.fewOps ? `месяцев с менее чем 3 поступлениями: ${d.fewOps}` : "в каждом месяце 3 и больше", "Допускается 1 такой месяц из 6 (2 из 12).");
+  add(isNum(d.buyers) ? (d.buyers >= 3 ? "ok" : "crit") : "nd", "Не менее 3 покупателей", isNum(d.buyers) ? `${d.buyers}${d.auto ? " (по выпискам)" : ""}` : "не указано", "Нужно минимум 3 покупателя за период.");
+  if (isNum(d.topShare)) add(d.topShare > 60 ? "chk" : "ok", "Доля одного покупателя не более 60 %", `${fmt(d.topShare, "1")} %${d.auto && d.cpl[0] ? " — " + d.cpl[0].name : ""}`, "Лимит уже рассчитан с ограничением: от этого покупателя учтено не более 60 % поступлений.");
+  if (d.sOther > 0) add(N(d.otherBanks) > 2 ? "crit" : isNum(d.otherBanks) ? "ok" : "nd", "Обороты в других банках — не более 2 банков", isNum(d.otherBanks) ? `банков: ${d.otherBanks}` : "не указано", "Учитываются обороты не более чем в 2 других банках; условие — перевод 90 % оборотов в наш банк в течение 3 месяцев.");
   if (+o.tranche === 90) add(o.banned === "Да" ? "crit" : "ok", "Транш до 90 дней не для строительства и сельского хозяйства", o.banned === "Да" ? "отрасль — строительство / сельское хозяйство" : "отрасль подходит", "Для этих отраслей — только транш до 30 дней.");
   add(N(c.term) > 0 ? (N(c.term) <= 36 ? "ok" : "crit") : "nd", "Срок кредитной линии не более 36 мес.", N(c.term) ? `${c.term} мес.` : "не указан", "Уменьшите срок линии до 36 мес.");
   add(!N(c.amount) ? "nd" : N(c.amount) <= d.limit + 0.5 ? "ok" : "crit", `Сумма не больше расчётного лимита${+o.tranche === 90 ? " и 100 млн тг" : ""}`, `запрос ${N(c.amount) ? fmt(c.amount) : "—"}, лимит ${fmt(d.limit)} тыс. тг`, `Снизить сумму до ${fmt(Math.floor(d.limit / 100) * 100)} тыс. тг.`);
   return out;
+}
+
+/* ================================================================ Овердрафт: выписки по счетам → очищенные кредитовые обороты.
+   Из поступлений исключаются (8 пунктов методики):
+   1) выдача кредитов; 2) конвертация — продажа валюты с валютных счетов; 3) поступления с других счетов клиента;
+   4) возврат платёжных документов; 5) финансовая помощь от связанных компаний; 6) кредиты (займы) от учредителей;
+   7) взносы наличными — кроме инкассации, банкоматов Cash-in и POS-терминалов; 8) государственные субсидии.
+   Штрафы, пени, вознаграждение и страховые выплаты не исключаются. Распознавание — по назначению платежа, КНП и БИН. */
+const OD_EX = {
+  loan: "1. Выдача кредитов", conv: "2. Конвертация (продажа валюты)", own: "3. С других счетов клиента", ret: "4. Возврат платёжных документов",
+  aid: "5. Финансовая помощь связанных компаний", founder: "6. Кредиты (займы) от учредителей", cash: "7. Взносы наличными", subs: "8. Государственные субсидии",
+};
+const FOUNDER = /учредител|участник\S*\s+(тоо|товарищ)|(^|\s)участник|акционер|собственник/;
+function odCat(t, own) {
+  if (t.ov) return t.ov === "inc" ? null : t.ov;            // ручной выбор
+  const c = DocParse.classify(t, own); if (!c) return null;
+  const [cat, why] = c, p = `${t.purp || ""} ${t.op || ""}`.toLowerCase();
+  const CASHOK = /банкомат|atm|cash\s*-?\s*in|кэш[-\s]?ин|(^|\s)pos|пос[-\s]?терминал|терминал|инкасс/;
+  if (cat === "own" && (/взнос\S*\s+(\S+\s+)?наличн|наличными|внесени\S*\s+(\S+\s+)?наличн/.test(p) || t.knp === "331")) return CASHOK.test(p) ? null : "cash";
+  if (cat === "loan") return FOUNDER.test(p) ? "founder" : "loan";
+  if (cat === "aid") { if (/субсид/.test(why)) return "subs"; if (/финансов/.test(why)) return FOUNDER.test(p) ? "founder" : "aid"; return null; }
+  if (cat === "cash") return CASHOK.test(p) ? null : "cash";
+  if (cat === "grp") return /помощ|займ|заем|заём|кредит|возврат/.test(p) ? (FOUNDER.test(p) ? "founder" : "aid") : null;
+  return OD_EX[cat] ? cat : null;
+}
+const dmy = s => { const m = /(\d{2})\.(\d{2})\.(\d{4})/.exec(s || ""); return m ? `${m[3]}-${m[2]}-${m[1]}` : ""; };
+function odOwn(o) {
+  const bins = [...new Set((o.st || []).map(s => s.bin).filter(Boolean))];
+  return { bins, names: [DocParse.clean(X.card.name || "")].filter(n => n.length > 3), grp: [] };
+}
+// сводка по выпискам за окно расчёта; суммы — тыс. тг
+function odStatements(o, win) {
+  const res = {}, ws = new Set(win), own = odOwn(o);
+  for (const w of ["our", "other"]) {
+    const sts = (o.st || []).filter(s => s.where === w);
+    const months = Object.fromEntries(win.map(ym => [ym, { net: 0, gross: 0, n: 0, covered: false }]));
+    const ex = Object.fromEntries(Object.keys(OD_EX).map(k => [k, { v: 0, n: 0 }]));
+    const cps = new Map(), banks = new Set(), seen = new Set(), noRate = [];
+    for (const s of sts) {
+      if (s.bank) banks.add(DocParse.clean(s.bank));
+      const from = dmy(s.from) || (s.txs[0] && s.txs[0].d) || "", to = dmy(s.to) || (s.txs.length && s.txs[s.txs.length - 1].d) || "";
+      for (const ym of win) if (from && to && from.slice(0, 7) <= ym && to.slice(0, 7) >= ym) months[ym].covered = true;
+      const k = s.cur && s.cur !== "KZT" ? (isNum(s.rate) && s.rate > 0 ? s.rate : null) : 1;
+      if (k === null) { noRate.push(s); continue; }
+      for (const t of s.txs) {
+        const ym = (t.d || "").slice(0, 7); if (!ws.has(ym)) continue;
+        const key = `${t.d}|${t.cr}|${t.doc || ""}|${t.cp}`; if (seen.has(key)) continue; seen.add(key);
+        const v = (isNum(t.eq) && t.eq > 0 ? t.eq : t.cr * k) / 1000;
+        months[ym].gross += v; months[ym].covered = true;
+        const cat = odCat(t, own);
+        if (cat) { ex[cat].v += v; ex[cat].n++; continue; }
+        months[ym].net += v; months[ym].n++;
+        if (/инкасс|банкомат|atm|cash\s*-?\s*in|(^|\s)pos|терминал|вознагражден\S*\s+(\S+\s+){0,2}(остат|депозит|вклад|сч[её]т)/.test(`${t.purp} ${t.op}`.toLowerCase())) continue;
+        const ck = t.bin || DocParse.clean(t.cp) || "без названия";
+        const x = cps.get(ck) || { name: t.cp || ck, v: 0 }; x.v += v; cps.set(ck, x);
+      }
+    }
+    const net = sum(Object.values(months).map(m => m.net));
+    let cut = 0; for (const [, x] of cps) if (net > 0 && x.v / net > 0.6) cut += 0.4 * x.v;
+    res[w] = { has: sts.length > 0, months, ex, cps, net, cut, banks, noRate, gross: sum(Object.values(months).map(m => m.gross)) };
+  }
+  return res;
+}
+
+/* загрузка выписки: PDF (текст или скан) или Excel → только поступления, в тенге как в документе */
+async function odImportStmt(file, where, onProg) {
+  if (!/\.(pdf|xlsx|xlsm|xls)$/i.test(file.name)) return { err: "нужна выписка в PDF или Excel" };
+  let r;
+  try {
+    const buf = await file.arrayBuffer();
+    if (/\.pdf$/i.test(file.name)) { let pdf = await PdfReader.read(buf); if (pdf.noText) pdf = await OCR.pdf(buf, onProg); r = DocParse.readLines(pdf); r.ocr = pdf.ocr; }
+    else r = DocParse.readSheets(await readWorkbook(buf));
+  } catch (e) { return { err: "не удалось прочитать: " + e.message }; }
+  if (r.kind === "bank") return { err: "это справка об оборотах — в ней нет отдельных операций, исключения посчитать нельзя. Нужна выписка по счёту" };
+  if (r.kind !== "stmt" || !r.stmt || !r.stmt.txs.length) return { err: "не похоже на выписку по счёту: не найдена таблица операций (дата, сумма, назначение)" };
+  const st = r.stmt, txs = st.txs.filter(t => t.cr > 0).map(t => ({ d: t.d, doc: t.doc || "", cp: t.cp || "", bin: t.bin || "", knp: t.knp || "", purp: (t.purp || "").slice(0, 300), op: (t.op || "").slice(0, 80), cr: t.cr, eq: isNum(t.eq) ? t.eq : null }))
+    .sort((a, b) => a.d.localeCompare(b.d));
+  if (!txs.length) return { err: "в выписке нет поступлений" };
+  const o = odCfg();
+  // та же выписка повторно — заменяем
+  o.st = o.st.filter(x => !(x.acc && x.acc === st.acc && x.from === st.from && x.to === st.to));
+  o.st.push({ id: uid(), file: file.name, bank: st.bank, acc: st.acc, cur: st.cur || "KZT", rate: null, where, from: st.from, to: st.to || "", bin: st.bin, txs });
+  return { ok: true, txt: `${st.bank || "банк не определён"}${st.acc ? ", счёт " + st.acc : ""}${st.from ? `, ${st.from}–${st.to}` : ""}: поступлений ${txs.length}${st.cur && st.cur !== "KZT" ? `; валюта ${st.cur} — укажите курс` : ""}.${r.ocr ? " Распознано со скана — проверьте операции." : ""}` };
 }
 
 
@@ -2604,7 +2713,7 @@ function renderClient() {
     <div class="client"><b>${esc(X.card.name || "Новый клиент")}</b><button data-act="home">← ко всем клиентам</button></div>
     <ol class="steps">${PAGES.map(([id, t]) => `<li><button data-page="${id}"${PAGE === id ? ' aria-current="page"' : ""}>${t}<span class="dot ${dots[id]}"></span></button></li>`).join("")}</ol>
     <div class="foot"><div class="foot-save"><button class="btn ghost" style="padding-left:0" data-act="save">Сохранить в файл</button><br>Все суммы — тыс. тг. Данные только в этом браузере.</div><div class="copy">© 2026 Создан ОФКК Костанай</div></div>
-  </nav><main class="main">${body}</main></div><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf,.jpg,.jpeg,.png" class="hidden">`;
+  </nav><main class="main">${body}</main></div><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf,.jpg,.jpeg,.png" class="hidden"><input type="file" id="stfile" multiple accept=".pdf,.xlsx,.xlsm,.xls" class="hidden">`;
   const cur = document.querySelector('.steps [aria-current="page"]'); if (cur && window.innerWidth <= 860) cur.scrollIntoView({ inline: "center", block: "nearest" });
 }
 // перерисовка с сохранением фокуса и прокрутки
@@ -2642,33 +2751,75 @@ function pageCard() {
   ${od ? odPanel() : ""}
   <div class="row noprint"><button class="btn primary" data-page="fin">Дальше: финансовая отчётность →</button></div>`;
 }
+let OD_SHOW = "ex";   // какие операции показывать: исключённые / все
 function odPanel() {
-  const d = odCalc(), o = d.o;
+  const d = odCalc(), o = d.o, S = d.S;
   const sel = (k, list) => `<select class="inp" data-k="od.${k}">${opts(list, String(o[k]))}</select>`;
   const onum = (k, ph = "") => num(o[k], "od." + k, ph ? `placeholder="${esc(ph)}"` : "");
+  const autoBox = (v, unit = "") => `<div class="calcbox">${isNum(v) ? fmt(v, unit === "%" ? "1" : "m") + (unit ? " " + unit : "") : "—"}</div><span class="fnote">по выпискам</span>`;
   const chk = odChecks(d);
+  const cell = (r, w) => S[w].has ? `<td class="auto">${r[w] === null ? '<span class="muted small">нет выписки</span>' : T(r[w])}</td>` : `<td class="c">${num(r[w], `odm.${r.ym}.${w}`)}</td>`;
   return `<section class="panel"><h2>Овердрафт: расчёт лимита</h2>
-    <p class="hint">Лимит = 40 % среднемесячных очищенных поступлений за ${d.n} полных месяцев до месяца заявки — отдельно по нашему банку и по другим банкам (не более 2)${+o.tranche === 90 ? "; при транше до 90 дней — не более 100 млн тг" : ""}. Очищенные поступления — без кредитов и займов, переводов между своими счетами, конвертации, возвратов, финансовой помощи, субсидий и взносов наличными (инкассация, банкоматы и POS — учитываются).</p>
+    <p class="hint">Лимит = 40 % среднемесячных очищенных кредитовых оборотов за ${d.n} полных месяцев до месяца заявки — отдельно по нашему банку и по другим банкам (не более 2)${+o.tranche === 90 ? "; при транше до 90 дней — не более 100 млн тг" : ""}. Загрузите выписки — сайт сам уберёт из поступлений то, что не считается оборотом, и заполнит таблицу. Без выписок поступления можно внести вручную.</p>
     <div class="grid g3">
       ${fld("Месяц заявки", `<input class="inp" type="month" data-k="od.appMonth" value="${esc(o.appMonth || ymNow())}">`)}
       ${fld("Сезонный бизнес", sel("seasonal", ["Нет", "Да"]))}
       ${fld("Строительство или сельское хозяйство", sel("banned", ["Нет", "Да"]))}
       ${fld("Срок деятельности, мес.", onum("exp", `нужно от ${d.needExp}`))}
-      ${fld("Покупателей за период", onum("buyers", "не менее 3"))}
-      ${fld("Доля крупнейшего покупателя, %", onum("topShare", "до 60"))}
-      ${fld("Других банков с оборотами", onum("otherBanks", "не более 2"))}
+      ${fld("Покупателей за период", d.auto ? autoBox(d.buyers) : onum("buyers", "не менее 3"))}
+      ${fld("Доля крупнейшего покупателя", d.auto ? autoBox(d.topShare, "%") : onum("topShare", "%, до 60"))}
+      ${fld("Других банков с оборотами", S.other.has ? autoBox(d.otherBanks) : onum("otherBanks", "не более 2"))}
     </div>
-    <div class="tw" style="margin-top:16px"><table class="t odt"><thead><tr><th class="l">Месяц</th><th>Поступления в нашем банке</th><th>В других банках</th><th>Итого</th></tr></thead><tbody>
-    ${d.rows.map((r, i) => `<tr><td class="l">${ymLabel(r.ym)}</td><td class="c">${num(r.our, `odm.${r.ym}.our`)}</td><td class="c">${num(r.other, `odm.${r.ym}.other`)}</td><td class="${d.tot[i] <= 0 && d.filled ? "neg" : ""}">${T(isNum(r.our) || isNum(r.other) ? d.tot[i] : null)}</td></tr>`).join("")}
-    <tr class="tot"><td class="l">Всего за ${d.n} мес.</td><td>${T(d.sOur)}</td><td>${T(d.sOther)}</td><td>${T(d.sOur + d.sOther)}</td></tr>
-    <tr><td class="l">Среднемесячно${d.adj < 1 ? " (с ограничением крупного покупателя)" : ""}</td><td>${T(d.avgOur)}</td><td>${T(d.avgOther)}</td><td>${T(d.avgOur + d.avgOther)}</td></tr>
-    <tr class="tot"><td class="l">Лимит — 40 % от среднемесячных</td><td>${T(d.limOur)}</td><td>${T(d.limOther)}</td><td>${T(d.lim)}</td></tr>
+  </section>
+  <section class="panel"><h2>Выписки по счетам</h2>
+    <p class="hint">PDF или Excel из интернет-банка, за ${d.n} месяцев до месяца заявки (${ymLabel(d.win[0])} — ${ymLabel(d.win[d.win.length - 1])}). Перед загрузкой выберите, где открыт счёт.</p>
+    <div class="row" style="margin-bottom:10px">${fld("Счёт открыт", `<select class="inp" data-k="od.stWhere">${opts([["our", "в нашем банке"], ["other", "в другом банке"]], o.stWhere || "our")}</select>`)}</div>
+    <div class="drop" id="sdrop"><b>Перетащите выписки сюда</b>или <button class="btn" data-act="pickst">выберите на компьютере</button><div class="small muted">Можно несколько файлов сразу: по каждому счёту и за разные месяцы.</div></div>
+    ${OD_LOG.length ? `<div class="flist">${OD_LOG.map(r => `<div class="fitem ${r.ok ? "ok" : "err"}"><span class="ic">${r.ok ? "✓" : "!"}</span><div class="fn"><b>${esc(r.file)}</b><br>${esc(r.txt || r.err)}</div></div>`).join("")}</div>` : ""}
+    ${o.st.length ? `<div class="tw" style="margin-top:14px"><table class="t"><thead><tr><th class="l">Банк, счёт</th><th class="l">Период</th><th class="l">Где открыт</th><th class="l">Валюта</th><th>Поступлений</th><th></th></tr></thead><tbody>
+      ${o.st.map((x, i) => `<tr><td class="l">${esc(x.bank || "банк не определён")}<span class="note">${esc(x.acc || x.file)}</span></td><td class="l">${esc(x.from ? `${x.from} — ${x.to}` : "—")}</td>
+        <td class="c"><select class="inp" data-k="ost.${i}.where">${opts([["our", "наш банк"], ["other", "другой банк"]], x.where)}</select></td>
+        <td class="${x.cur !== "KZT" ? "c" : "l"}">${x.cur !== "KZT" ? num(x.rate, `ost.${i}.rate`, `placeholder="курс ${esc(x.cur)}"`) : "KZT"}</td><td>${x.txs.length}</td><td class="x"><button class="xbtn" data-rmst="${i}" title="Удалить выписку">×</button></td></tr>`).join("")}
+    </tbody></table></div>` : ""}
+    ${d.auto ? odExTable(d) : ""}
+  </section>
+  <section class="panel"><h2>Очищенные обороты по месяцам</h2>
+    <div class="tw"><table class="t odt"><thead><tr><th class="l">Месяц</th><th>В нашем банке</th><th>В других банках</th><th>Итого</th>${d.auto ? "<th>Поступлений, шт.</th>" : ""}</tr></thead><tbody>
+    ${d.rows.map((r, i) => `<tr><td class="l">${ymLabel(r.ym)}</td>${cell(r, "our")}${cell(r, "other")}<td class="${d.tot[i] <= 0 && d.filled ? "neg" : ""}">${T(isNum(r.our) || isNum(r.other) ? d.tot[i] : null)}</td>${d.auto ? `<td class="${r.nOps < 3 ? "neg" : ""}">${r.nOps}</td>` : ""}</tr>`).join("")}
+    <tr class="tot"><td class="l">Всего за ${d.n} мес.</td><td>${T(d.sOur)}</td><td>${T(d.sOther)}</td><td>${T(d.sOur + d.sOther)}</td>${d.auto ? "<td></td>" : ""}</tr>
+    <tr><td class="l">Среднемесячно${d.cutAny ? " (с ограничением крупного покупателя 60 %)" : ""}</td><td>${T(d.avgOur)}</td><td>${T(d.avgOther)}</td><td>${T(d.avgOur + d.avgOther)}</td>${d.auto ? "<td></td>" : ""}</tr>
+    <tr class="tot"><td class="l">Лимит — 40 % от среднемесячных</td><td>${T(d.limOur)}</td><td>${T(d.limOther)}</td><td>${T(d.lim)}</td>${d.auto ? "<td></td>" : ""}</tr>
     </tbody></table></div>
     <div class="odres"><div><span>Расчётный лимит</span><b>${fmt(d.limit)} тыс. тг</b>${d.capHit ? `<i>ограничен 100 млн тг (транш до 90 дней)</i>` : ""}</div><div><span>Запрашивают</span><b>${N(X.card.amount) ? fmt(X.card.amount) + " тыс. тг" : "—"}</b>${N(X.card.amount) ? `<i>${N(X.card.amount) <= d.limit + 0.5 ? "укладывается в лимит" : "больше лимита"}</i>` : ""}</div></div>
     <h3 style="margin:18px 0 8px">Условия овердрафта</h3>
     <div class="odchk">${chk.map(k => `<div class="${k.sev}"><span class="tag ${k.sev}">${SEVT[k.sev]}</span><b>${esc(k.t)}</b><em>${esc(k.fact)}</em></div>`).join("")}</div>
   </section>`;
 }
+let OD_LOG = [];
+// исключения по 8 пунктам + крупнейшие отправители + список операций
+function odExTable(d) {
+  const S = d.S, o = d.o, ws = new Set(d.win), own = odOwn(o);
+  const rows = Object.entries(OD_EX).map(([k, t]) => { const v = S.our.ex[k].v + S.other.ex[k].v, n = S.our.ex[k].n + S.other.ex[k].n; return `<tr${n ? "" : ' class="zero"'}><td class="l">${t}</td><td>${n || "—"}</td><td>${n ? T(v) : "—"}</td></tr>`; }).join("");
+  const exTot = sum(Object.keys(OD_EX).map(k => S.our.ex[k].v + S.other.ex[k].v)), gross = S.our.gross + S.other.gross;
+  const ops = [];
+  o.st.forEach((x, si) => x.txs.forEach((t, ti) => { if (!ws.has((t.d || "").slice(0, 7))) return; const cat = odCat(t, own); if (OD_SHOW === "ex" && !cat) return; ops.push({ t, si, ti, cat, w: x.where }); }));
+  ops.sort((a, b) => a.t.d.localeCompare(b.t.d));
+  const catOpts = [["inc", "учитывается"], ...Object.entries(OD_EX)];
+  return `<h3 style="margin:18px 0 8px">Что исключено из поступлений</h3>
+    <div class="tw"><table class="t odex"><thead><tr><th class="l">Вид поступления (по методике)</th><th>Операций</th><th>Сумма, тыс. тг</th></tr></thead><tbody>${rows}
+      <tr class="tot"><td class="l">Всего поступлений за период</td><td></td><td>${T(gross)}</td></tr>
+      <tr class="tot"><td class="l">Исключено</td><td></td><td>${T(exTot)}</td></tr>
+      <tr class="tot"><td class="l">Очищенные обороты</td><td></td><td>${T(gross - exTot)}</td></tr></tbody></table></div>
+    ${d.cpl.length ? `<h3 style="margin:18px 0 8px">Крупнейшие покупатели</h3><div class="tw"><table class="t"><thead><tr><th class="l">Отправитель</th><th>Сумма, тыс. тг</th><th>Доля</th></tr></thead><tbody>${d.cpl.slice(0, 5).map(x => `<tr><td class="l">${esc(x.name)}</td><td>${T(x.v)}</td><td class="${x.v / d.cpTot > 0.6 ? "neg" : ""}">${fmt(x.v / d.cpTot, "p")}</td></tr>`).join("")}</tbody></table></div>` : ""}
+    <details class="ops"${OD_OPEN ? " open" : ""}><summary>Операции за период: ${OD_SHOW === "ex" ? "исключённые" : "все"} (${ops.length}) — проверить и при необходимости изменить</summary>
+      <div class="row" style="margin:10px 0"><button class="btn${OD_SHOW === "ex" ? " primary" : ""}" data-odshow="ex">Только исключённые</button><button class="btn${OD_SHOW === "all" ? " primary" : ""}" data-odshow="all">Все поступления</button></div>
+      <div class="tw"><table class="t ops"><thead><tr><th class="l">Дата</th><th class="l">Отправитель</th><th class="l">Назначение платежа</th><th>Сумма, тг</th><th class="l">В расчёте</th></tr></thead><tbody>
+      ${ops.slice(0, 400).map(x => `<tr${x.t.ov ? ' class="man"' : ""}><td class="l">${x.t.d.split("-").reverse().join(".")}</td><td class="l">${esc(x.t.cp || "—")}${x.t.bin ? `<span class="note">${x.t.bin}</span>` : ""}</td><td class="l purp">${esc(x.t.purp || x.t.op || "—")}${x.t.knp ? `<span class="note">КНП ${x.t.knp}</span>` : ""}</td><td>${fmt(x.t.cr)}</td>
+        <td class="c"><select class="inp" data-k="otx.${x.si}.${x.ti}">${opts(catOpts, x.cat || "inc")}</select></td></tr>`).join("") || `<tr><td colspan="5" class="l muted">Нет операций.</td></tr>`}
+      </tbody></table></div>${ops.length > 400 ? `<p class="small muted">Показаны первые 400 операций.</p>` : ""}
+    </details>`;
+}
+let OD_OPEN = false;
 
 /* ---------------------------------------------------------------- 2. Финансовая отчётность */
 function pageFin() {
@@ -2806,7 +2957,11 @@ function buildConclusion(pr, v) {
   if (isOD(c)) {
     const d = odCalc();
     H("3. Лимит овердрафта");
-    P(`Очищенные поступления за ${d.n} мес. до месяца заявки: в нашем банке ${t(d.sOur)}, в других банках ${t(d.sOther)}; среднемесячно ${t(d.avgOur + d.avgOther)}${d.adj < 1 ? " (поступления крупнейшего покупателя учтены не более 60 %)" : ""}.`);
+    P(`Очищенные поступления за ${d.n} мес. до месяца заявки${d.auto ? " (по выпискам)" : ""}: в нашем банке ${t(d.sOur)}, в других банках ${t(d.sOther)}; среднемесячно ${t(d.avgOur + d.avgOther)}${d.cutAny ? " (поступления крупнейшего покупателя учтены не более 60 %)" : ""}.`);
+    if (d.auto) {
+      const exs = Object.entries(OD_EX).map(([k, nm]) => [nm.replace(/^\d+\.\s*/, "").toLowerCase(), d.S.our.ex[k].v + d.S.other.ex[k].v]).filter(x => x[1] > 0);
+      P(`Всего поступлений по выпискам — ${t(d.S.our.gross + d.S.other.gross)}${exs.length ? `; исключено ${t(sum(exs.map(x => x[1])))}: ${exs.map(([nm, v]) => `${nm} — ${t(v)}`).join("; ")}` : "; исключений нет"}.`);
+    }
     P(`Расчётный лимит — ${t(Math.floor(d.limit / 100) * 100)}${d.capHit ? " (ограничен 100 млн тг при транше до 90 дней)" : ""}. ${N(c.amount) ? (N(c.amount) <= d.limit + 0.5 ? "Запрошенная сумма укладывается в лимит." : `Запрошено ${t(c.amount)} — больше лимита.`) : ""}`);
     P(`Транш до ${odCfg().tranche} дней, срок кредитной линии ${c.term || "—"} мес. ${m.payKnown ? `Взнос по действующим кредитам — около ${t(m.payExist)} в месяц.` : ""}`);
     P("Условия овердрафта:");
@@ -2848,7 +3003,7 @@ function ask(msg, yes = "Да", no = "Отмена") {
     document.body.appendChild(m); m.querySelector('[data-q="1"]').focus();
   });
 }
-function openClient(c, page = "card") { X = c; PAGE = page; UPL = { pid: null, units: "auto", log: [] }; renderClient(); window.scrollTo(0, 0); }
+function openClient(c, page = "card") { X = c; PAGE = page; UPL = { pid: null, units: "auto", log: [] }; OD_LOG = []; OD_SHOW = "ex"; OD_OPEN = false; renderClient(); window.scrollTo(0, 0); }
 
 function onChange(el) {
   const k = el.dataset.k; if (!k) return false;
@@ -2863,6 +3018,8 @@ function onChange(el) {
   }
   else if (parts[0] === "f") { setFv(parts[1], parts[2], nval()); }
   else if (parts[0] === "od") { const o = odCfg(), f = parts[1]; o[f] = ["exp", "buyers", "topShare", "otherBanks"].includes(f) ? nval() : f === "tranche" ? +raw : raw; }
+  else if (parts[0] === "ost") { const x = odCfg().st[+parts[1]]; if (parts[2] === "rate") x.rate = nval(); else x[parts[2]] = raw; }
+  else if (parts[0] === "otx") { const t = odCfg().st[+parts[1]].txs[+parts[2]]; delete t.ov; const auto = odCat(t, odOwn(odCfg())) || "inc"; if (raw !== auto) t.ov = raw; }
   else if (parts[0] === "odm") { const o = odCfg(), ym = parts[1]; o.m[ym] = o.m[ym] || {}; const v = nval(); if (isNum(v)) o.m[ym][parts[2]] = v; else delete o.m[ym][parts[2]]; }
   else if (parts[0] === "p") { const p = X.per[+parts[1]]; if (parts[2] === "months") { const v = nval(); p.months = isNum(v) && v >= 1 && v <= 12 ? Math.round(v) : 12; } else p.date = raw; }
   else if (parts[0] === "d") {
@@ -2872,6 +3029,17 @@ function onChange(el) {
     else { d[f] = raw; if (f === "form") d.formName = { "100": "КПН (ф. 100.00)", "910": "Упрощённая декларация (ф. 910.00)", "300": "НДС (ф. 300.00)", "200": "ИПН и социальный налог (ф. 200.00)", "220": "ИПН (ф. 220.00)" }[raw] || raw; }
   }
   touch(); return true;
+}
+async function handleStmts(files) {
+  if (!files || !files.length) return;
+  const where = odCfg().stWhere || "our";
+  for (const f of files) {
+    toast(`Читаю выписку ${f.name}…`);
+    let r; try { r = await odImportStmt(f, where, (i, n) => toast(`Распознаю скан: страница ${i} из ${n}…`)); } catch (e) { r = { err: "ошибка разбора: " + e.message }; }
+    OD_LOG.unshift({ file: f.name, ...r });
+  }
+  OD_LOG = OD_LOG.slice(0, 10);
+  touch(); saveAll(true); rerender(); toast("Выписки разобраны — проверьте исключения");
 }
 async function handleFiles(files) {
   if (!files || !files.length) return;
@@ -2897,6 +3065,8 @@ document.addEventListener("click", async e => {
   if (d.add) { const arr = X.card[d.add] = X.card[d.add] || []; arr.push(d.add === "loans" ? { bank: "", kind: "Кредит", balance: null, pay: null, end: "", overdue: "no", refin: false } : d.add === "coll" ? { type: "Недвижимость коммерческая", desc: "", owner: "", value: null, disc: COLL["Недвижимость коммерческая"] } : { name: "", type: "Физическое лицо", rel: "", note: "" }); touch(); rerender(); return; }
   if (d.rm) { const [arr, i] = d.rm.split("."); X.card[arr].splice(+i, 1); touch(); rerender(); return; }
   if (d.rmper !== undefined) { const i = +d.rmper, p = X.per[i]; if (!(await ask(`Удалить период «${perLabel(p)}» и все его цифры?`, "Удалить"))) return; for (const k of Object.keys(X.fin)) delete X.fin[k][p.id]; X.per.splice(i, 1); touch(); rerender(); return; }
+  if (d.rmst !== undefined) { if (!(await ask("Удалить выписку из расчёта?", "Удалить"))) return; odCfg().st.splice(+d.rmst, 1); touch(); rerender(); return; }
+  if (d.odshow) { OD_SHOW = d.odshow; OD_OPEN = true; rerender(); return; }
   if (d.rmdecl !== undefined) { X.decl.splice(+d.rmdecl, 1); touch(); rerender(); return; }
   switch (d.act) {
     case "new": { const c = newClient(); CLIENTS.push(c); saveAll(true); openClient(c); break; }
@@ -2906,6 +3076,7 @@ document.addEventListener("click", async e => {
     case "save": download(`Экспресс_${(X.card.name || "клиент").replace(/[^\wА-Яа-яЁёӘәҒғҚқҢңӨөҰұҮүҺһІі -]+/g, "").trim() || "клиент"}_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: "finkz-express", v: 1, client: X }, null, 1)); toast("Файл сохранён в «Загрузки»"); break;
     case "addper": { const last = X.per[X.per.length - 1], y = last && last.date ? +last.date.slice(0, 4) + 1 : new Date().getFullYear(); X.per.push({ id: uid(), date: `${y}-${N(last?.months) === 12 ? "09-30" : "12-31"}`, months: N(last?.months) === 12 ? 9 : 12 }); touch(); rerender(); break; }
     case "pick": $("#ufile").click(); break;
+    case "pickst": $("#stfile").click(); break;
     case "adddecl": X.decl.push({ id: uid(), file: "", form: "100", formName: "КПН (ф. 100.00)", year: new Date().getFullYear() - 1, part: "Y", vals: {} }); touch(); rerender(); break;
     case "copy": { const txt = docText(buildConclusion(problems(), verdict(problems()))); try { await navigator.clipboard.writeText(txt); toast("Текст заключения скопирован"); } catch (err) { const r = document.createRange(); r.selectNodeContents($(".doc")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Текст выделен — нажмите Ctrl+C"); } break; }
     case "print": window.print(); break;
@@ -2915,6 +3086,7 @@ document.addEventListener("change", e => {
   const el = e.target;
   if (el.id === "ofile") { const f = el.files[0]; if (!f) return; f.text().then(txt => { try { const o = JSON.parse(txt), c = o.client || o; if (!c.card || !c.per) throw new Error(); c.id = uid(); c.demo = false; CLIENTS.push(c); saveAll(true); openClient(c); toast("Клиент открыт из файла"); } catch (err) { toast("Это не файл экспресс-анализа"); } }); return; }
   if (el.id === "ufile") { handleFiles([...el.files]); el.value = ""; return; }
+  if (el.id === "stfile") { handleStmts([...el.files]); el.value = ""; return; }
   if (el.dataset.upl) { UPL[el.dataset.upl] = el.value; return; }
   if (onChange(el)) { PENDING = true; if (!PD) setTimeout(flush, 0); }
 });
@@ -2925,9 +3097,10 @@ document.addEventListener("pointerdown", () => { PD = true; }, true);
 document.addEventListener("pointerup", () => { PD = false; setTimeout(flush, 0); }, true);
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input.inp")) e.target.blur(); });
 document.addEventListener("focusin", e => { if (e.target.matches("input.num")) { const v = parseNum(e.target.value); if (isNum(v)) e.target.value = String(v).replace(".", ","); e.target.select(); } });
-document.addEventListener("dragover", e => { const d = e.target.closest?.("#drop"); if (d) { e.preventDefault(); d.classList.add("on"); } });
-document.addEventListener("dragleave", e => { const d = e.target.closest?.("#drop"); if (d) d.classList.remove("on"); });
-document.addEventListener("drop", e => { const d = e.target.closest?.("#drop"); if (!d) return; e.preventDefault(); d.classList.remove("on"); handleFiles([...e.dataTransfer.files]); });
+document.addEventListener("toggle", e => { if (e.target.matches && e.target.matches("details.ops")) OD_OPEN = e.target.open; }, true);
+document.addEventListener("dragover", e => { const d = e.target.closest?.("#drop, #sdrop"); if (d) { e.preventDefault(); d.classList.add("on"); } });
+document.addEventListener("dragleave", e => { const d = e.target.closest?.("#drop, #sdrop"); if (d) d.classList.remove("on"); });
+document.addEventListener("drop", e => { const d = e.target.closest?.("#drop, #sdrop"); if (!d) return; e.preventDefault(); d.classList.remove("on"); (d.id === "sdrop" ? handleStmts : handleFiles)([...e.dataTransfer.files]); });
 window.addEventListener("beforeunload", () => saveAll(true));
 
 /* ---------------------------------------------------------------- пример: вымышленная компания */

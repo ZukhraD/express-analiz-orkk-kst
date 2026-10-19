@@ -186,7 +186,7 @@ function verdict(probs) {
    доля одного покупателя больше 60 % — его поступления берутся не более 60 %. */
 const OD_CAP = 100000;   // тыс. тг
 const isOD = (c = X.card) => c.product === "Овердрафт";
-function odCfg(c = X.card) { c.od = Object.assign({ tranche: 30, seasonal: "Нет", appMonth: "", exp: null, buyers: null, topShare: null, otherBanks: null, banned: "Нет", m: {} }, c.od || {}); c.od.m = c.od.m || {}; return c.od; }
+function odCfg(c = X.card) { c.od = Object.assign({ tranche: 30, seasonal: "Нет", appMonth: "", exp: null, buyers: null, topShare: null, otherBanks: null, banned: "Нет", m: {}, st: [], stWhere: "our" }, c.od || {}); c.od.m = c.od.m || {}; c.od.st = c.od.st || []; return c.od; }
 const ymNow = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; };
 const MON = ["январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"];
 const ymLabel = ym => { const [y, m] = ym.split("-"); return `${MON[+m - 1]} ${y}`; };
@@ -196,29 +196,128 @@ function odWindow(o = odCfg()) {
   return out;
 }
 function odCalc() {
-  const o = odCfg(), win = odWindow(o), n = win.length;
-  const rows = win.map(ym => ({ ym, our: o.m[ym]?.our ?? null, other: o.m[ym]?.other ?? null }));
+  const o = odCfg(), win = odWindow(o), n = win.length, S = odStatements(o, win);
+  // по каждой группе: если есть выписки — суммы из выписок, иначе — внесённые вручную
+  const val = (ym, w) => S[w].has ? (S[w].months[ym].covered ? S[w].months[ym].net : null) : (o.m[ym]?.[w] ?? null);
+  const rows = win.map(ym => ({ ym, our: val(ym, "our"), other: val(ym, "other"), nOps: S.our.has || S.other.has ? N(S.our.months[ym].n) + N(S.other.months[ym].n) : null }));
   const filled = rows.filter(r => isNum(r.our) || isNum(r.other)).length;
   const sOur = sum(rows.map(r => r.our)), sOther = sum(rows.map(r => r.other));
-  const share = isNum(o.topShare) ? o.topShare / 100 : 0, adj = share > 0.6 ? 1 - 0.4 * share : 1;   // ограничение крупного покупателя
-  const avgOur = sOur * adj / n, avgOther = (N(o.otherBanks) > 2 ? 0 : sOther * adj) / n;
+  // покупатели: по выпискам — сами; иначе — со слов клиента
+  const auto = S.our.has || S.other.has;
+  const allCp = new Map(); for (const w of ["our", "other"]) for (const [k, x] of S[w].cps) { const y = allCp.get(k) || { name: x.name, v: 0 }; y.v += x.v; allCp.set(k, y); }
+  const cpl = [...allCp.values()].sort((a, b) => b.v - a.v), cpTot = sum(cpl.map(x => x.v));
+  const buyers = auto ? cpl.length : o.buyers, topShare = auto ? (cpTot ? cpl[0].v / cpTot * 100 : null) : o.topShare;
+  const otherBanks = S.other.has ? S.other.banks.size : o.otherBanks;
+  const share = isNum(topShare) ? topShare / 100 : 0, adj = share > 0.6 ? 1 - 0.4 * share : 1;
+  const grpAvg = (w, s) => S[w].has ? Math.max(0, s - S[w].cut) / n : s * adj / n;
+  const avgOur = grpAvg("our", sOur), avgOther = N(otherBanks) > 2 ? 0 : grpAvg("other", sOther);
   const limOur = 0.4 * avgOur, limOther = 0.4 * avgOther, lim = limOur + limOther;
   const limit = +o.tranche === 90 ? Math.min(lim, OD_CAP) : lim;
   const tot = rows.map(r => N(r.our) + N(r.other)), avgAll = sum(tot) / n;
+  const cutAny = S.our.cut + S.other.cut > 0 || (!auto && adj < 1);
   return { o, win, n, rows, filled, sOur, sOther, adj, share, avgOur, avgOther, limOur, limOther, lim, limit, capHit: +o.tranche === 90 && lim > OD_CAP, tot, avgAll,
-    zero: tot.filter(v => v <= 0).length, low: tot.filter(v => v > 0 && v < 0.3 * avgAll).length, needExp: o.seasonal === "Да" || +o.tranche === 90 ? 12 : 6 };
+    zero: tot.filter(v => v <= 0).length, low: tot.filter(v => v > 0 && v < 0.3 * avgAll).length, needExp: o.seasonal === "Да" || +o.tranche === 90 ? 12 : 6,
+    S, auto, cpl, cpTot, buyers, topShare, otherBanks, cutAny,
+    uncovered: rows.filter(r => (S.our.has && r.our === null) || (S.other.has && r.other === null)).length,
+    fewOps: auto ? rows.filter(r => r.nOps < 3).length : null };
 }
 // проверки по условиям овердрафта: [статус, условие, факт, что сделать]
 function odChecks(d = odCalc()) {
   const o = d.o, c = X.card, out = [], add = (sev, t, fact, todo) => out.push({ sev, t, fact, todo });
-  if (!d.filled) { add("nd", "Поступления за период", `не внесены поступления за ${d.n} мес.`, "Внесите очищенные поступления по месяцам в «Карточке клиента»."); return out; }
+  if (!d.filled) { add("nd", "Поступления за период", `нет поступлений за ${d.n} мес.`, "Загрузите выписки по счетам или внесите очищенные поступления по месяцам в «Карточке клиента»."); return out; }
   add(isNum(o.exp) ? (o.exp >= d.needExp ? "ok" : "crit") : "nd", `Срок деятельности не менее ${d.needExp} мес.`, isNum(o.exp) ? `${o.exp} мес.` : "не указан", `Нужно не меньше ${d.needExp} мес.${d.needExp === 12 ? " (сезонный бизнес или транш до 90 дней)" : ""}.`);
   add(d.zero ? "crit" : d.low ? "chk" : "ok", "Стабильные поступления каждый месяц", d.zero ? `месяцев без поступлений: ${d.zero}` : d.low ? `месяцев с очень малыми поступлениями: ${d.low}` : "поступления есть каждый месяц", d.zero ? "При сезонном бизнесе отметьте «Сезонный бизнес: Да» (период 12 мес.); проверьте, все ли счета учтены." : "Уточнить причину провала поступлений.");
-  add(isNum(o.buyers) ? (o.buyers >= 3 ? "ok" : "crit") : "nd", "Не менее 3 покупателей", isNum(o.buyers) ? `${o.buyers}` : "не указано", "Нужно минимум 3 покупателя за период.");
-  if (isNum(o.topShare)) add(o.topShare > 60 ? "chk" : "ok", "Доля одного покупателя не более 60 %", `${fmt(o.topShare, "1")} %`, "Лимит уже рассчитан с ограничением: от этого покупателя учтено не более 60 % поступлений.");
-  if (d.sOther > 0) add(N(o.otherBanks) > 2 ? "crit" : isNum(o.otherBanks) ? "ok" : "nd", "Обороты в других банках — не более 2 банков", isNum(o.otherBanks) ? `банков: ${o.otherBanks}` : "не указано", "Учитываются обороты не более чем в 2 других банках; условие — перевод 90 % оборотов в наш банк в течение 3 месяцев.");
+  if (d.auto && d.uncovered) add("chk", "Выписки за все месяцы периода", `нет выписки за месяцев: ${d.uncovered}`, "Загрузите выписки за весь период — месяцы без выписки в расчёт не попали.");
+  if (d.auto && d.S.our.noRate.length + d.S.other.noRate.length) add("chk", "Курс для валютных счетов", "не указан курс — валютная выписка не учтена", "Укажите курс к тенге у валютной выписки.");
+  if (d.auto) add(d.fewOps > (d.n === 12 ? 2 : 1) ? "crit" : d.fewOps ? "chk" : "ok", "Поступления не реже 3 раз в месяц", d.fewOps ? `месяцев с менее чем 3 поступлениями: ${d.fewOps}` : "в каждом месяце 3 и больше", "Допускается 1 такой месяц из 6 (2 из 12).");
+  add(isNum(d.buyers) ? (d.buyers >= 3 ? "ok" : "crit") : "nd", "Не менее 3 покупателей", isNum(d.buyers) ? `${d.buyers}${d.auto ? " (по выпискам)" : ""}` : "не указано", "Нужно минимум 3 покупателя за период.");
+  if (isNum(d.topShare)) add(d.topShare > 60 ? "chk" : "ok", "Доля одного покупателя не более 60 %", `${fmt(d.topShare, "1")} %${d.auto && d.cpl[0] ? " — " + d.cpl[0].name : ""}`, "Лимит уже рассчитан с ограничением: от этого покупателя учтено не более 60 % поступлений.");
+  if (d.sOther > 0) add(N(d.otherBanks) > 2 ? "crit" : isNum(d.otherBanks) ? "ok" : "nd", "Обороты в других банках — не более 2 банков", isNum(d.otherBanks) ? `банков: ${d.otherBanks}` : "не указано", "Учитываются обороты не более чем в 2 других банках; условие — перевод 90 % оборотов в наш банк в течение 3 месяцев.");
   if (+o.tranche === 90) add(o.banned === "Да" ? "crit" : "ok", "Транш до 90 дней не для строительства и сельского хозяйства", o.banned === "Да" ? "отрасль — строительство / сельское хозяйство" : "отрасль подходит", "Для этих отраслей — только транш до 30 дней.");
   add(N(c.term) > 0 ? (N(c.term) <= 36 ? "ok" : "crit") : "nd", "Срок кредитной линии не более 36 мес.", N(c.term) ? `${c.term} мес.` : "не указан", "Уменьшите срок линии до 36 мес.");
   add(!N(c.amount) ? "nd" : N(c.amount) <= d.limit + 0.5 ? "ok" : "crit", `Сумма не больше расчётного лимита${+o.tranche === 90 ? " и 100 млн тг" : ""}`, `запрос ${N(c.amount) ? fmt(c.amount) : "—"}, лимит ${fmt(d.limit)} тыс. тг`, `Снизить сумму до ${fmt(Math.floor(d.limit / 100) * 100)} тыс. тг.`);
   return out;
+}
+
+/* ================================================================ Овердрафт: выписки по счетам → очищенные кредитовые обороты.
+   Из поступлений исключаются (8 пунктов методики):
+   1) выдача кредитов; 2) конвертация — продажа валюты с валютных счетов; 3) поступления с других счетов клиента;
+   4) возврат платёжных документов; 5) финансовая помощь от связанных компаний; 6) кредиты (займы) от учредителей;
+   7) взносы наличными — кроме инкассации, банкоматов Cash-in и POS-терминалов; 8) государственные субсидии.
+   Штрафы, пени, вознаграждение и страховые выплаты не исключаются. Распознавание — по назначению платежа, КНП и БИН. */
+const OD_EX = {
+  loan: "1. Выдача кредитов", conv: "2. Конвертация (продажа валюты)", own: "3. С других счетов клиента", ret: "4. Возврат платёжных документов",
+  aid: "5. Финансовая помощь связанных компаний", founder: "6. Кредиты (займы) от учредителей", cash: "7. Взносы наличными", subs: "8. Государственные субсидии",
+};
+const FOUNDER = /учредител|участник\S*\s+(тоо|товарищ)|(^|\s)участник|акционер|собственник/;
+function odCat(t, own) {
+  if (t.ov) return t.ov === "inc" ? null : t.ov;            // ручной выбор
+  const c = DocParse.classify(t, own); if (!c) return null;
+  const [cat, why] = c, p = `${t.purp || ""} ${t.op || ""}`.toLowerCase();
+  const CASHOK = /банкомат|atm|cash\s*-?\s*in|кэш[-\s]?ин|(^|\s)pos|пос[-\s]?терминал|терминал|инкасс/;
+  if (cat === "own" && (/взнос\S*\s+(\S+\s+)?наличн|наличными|внесени\S*\s+(\S+\s+)?наличн/.test(p) || t.knp === "331")) return CASHOK.test(p) ? null : "cash";
+  if (cat === "loan") return FOUNDER.test(p) ? "founder" : "loan";
+  if (cat === "aid") { if (/субсид/.test(why)) return "subs"; if (/финансов/.test(why)) return FOUNDER.test(p) ? "founder" : "aid"; return null; }
+  if (cat === "cash") return CASHOK.test(p) ? null : "cash";
+  if (cat === "grp") return /помощ|займ|заем|заём|кредит|возврат/.test(p) ? (FOUNDER.test(p) ? "founder" : "aid") : null;
+  return OD_EX[cat] ? cat : null;
+}
+const dmy = s => { const m = /(\d{2})\.(\d{2})\.(\d{4})/.exec(s || ""); return m ? `${m[3]}-${m[2]}-${m[1]}` : ""; };
+function odOwn(o) {
+  const bins = [...new Set((o.st || []).map(s => s.bin).filter(Boolean))];
+  return { bins, names: [DocParse.clean(X.card.name || "")].filter(n => n.length > 3), grp: [] };
+}
+// сводка по выпискам за окно расчёта; суммы — тыс. тг
+function odStatements(o, win) {
+  const res = {}, ws = new Set(win), own = odOwn(o);
+  for (const w of ["our", "other"]) {
+    const sts = (o.st || []).filter(s => s.where === w);
+    const months = Object.fromEntries(win.map(ym => [ym, { net: 0, gross: 0, n: 0, covered: false }]));
+    const ex = Object.fromEntries(Object.keys(OD_EX).map(k => [k, { v: 0, n: 0 }]));
+    const cps = new Map(), banks = new Set(), seen = new Set(), noRate = [];
+    for (const s of sts) {
+      if (s.bank) banks.add(DocParse.clean(s.bank));
+      const from = dmy(s.from) || (s.txs[0] && s.txs[0].d) || "", to = dmy(s.to) || (s.txs.length && s.txs[s.txs.length - 1].d) || "";
+      for (const ym of win) if (from && to && from.slice(0, 7) <= ym && to.slice(0, 7) >= ym) months[ym].covered = true;
+      const k = s.cur && s.cur !== "KZT" ? (isNum(s.rate) && s.rate > 0 ? s.rate : null) : 1;
+      if (k === null) { noRate.push(s); continue; }
+      for (const t of s.txs) {
+        const ym = (t.d || "").slice(0, 7); if (!ws.has(ym)) continue;
+        const key = `${t.d}|${t.cr}|${t.doc || ""}|${t.cp}`; if (seen.has(key)) continue; seen.add(key);
+        const v = (isNum(t.eq) && t.eq > 0 ? t.eq : t.cr * k) / 1000;
+        months[ym].gross += v; months[ym].covered = true;
+        const cat = odCat(t, own);
+        if (cat) { ex[cat].v += v; ex[cat].n++; continue; }
+        months[ym].net += v; months[ym].n++;
+        if (/инкасс|банкомат|atm|cash\s*-?\s*in|(^|\s)pos|терминал|вознагражден\S*\s+(\S+\s+){0,2}(остат|депозит|вклад|сч[её]т)/.test(`${t.purp} ${t.op}`.toLowerCase())) continue;
+        const ck = t.bin || DocParse.clean(t.cp) || "без названия";
+        const x = cps.get(ck) || { name: t.cp || ck, v: 0 }; x.v += v; cps.set(ck, x);
+      }
+    }
+    const net = sum(Object.values(months).map(m => m.net));
+    let cut = 0; for (const [, x] of cps) if (net > 0 && x.v / net > 0.6) cut += 0.4 * x.v;
+    res[w] = { has: sts.length > 0, months, ex, cps, net, cut, banks, noRate, gross: sum(Object.values(months).map(m => m.gross)) };
+  }
+  return res;
+}
+
+/* загрузка выписки: PDF (текст или скан) или Excel → только поступления, в тенге как в документе */
+async function odImportStmt(file, where, onProg) {
+  if (!/\.(pdf|xlsx|xlsm|xls)$/i.test(file.name)) return { err: "нужна выписка в PDF или Excel" };
+  let r;
+  try {
+    const buf = await file.arrayBuffer();
+    if (/\.pdf$/i.test(file.name)) { let pdf = await PdfReader.read(buf); if (pdf.noText) pdf = await OCR.pdf(buf, onProg); r = DocParse.readLines(pdf); r.ocr = pdf.ocr; }
+    else r = DocParse.readSheets(await readWorkbook(buf));
+  } catch (e) { return { err: "не удалось прочитать: " + e.message }; }
+  if (r.kind === "bank") return { err: "это справка об оборотах — в ней нет отдельных операций, исключения посчитать нельзя. Нужна выписка по счёту" };
+  if (r.kind !== "stmt" || !r.stmt || !r.stmt.txs.length) return { err: "не похоже на выписку по счёту: не найдена таблица операций (дата, сумма, назначение)" };
+  const st = r.stmt, txs = st.txs.filter(t => t.cr > 0).map(t => ({ d: t.d, doc: t.doc || "", cp: t.cp || "", bin: t.bin || "", knp: t.knp || "", purp: (t.purp || "").slice(0, 300), op: (t.op || "").slice(0, 80), cr: t.cr, eq: isNum(t.eq) ? t.eq : null }))
+    .sort((a, b) => a.d.localeCompare(b.d));
+  if (!txs.length) return { err: "в выписке нет поступлений" };
+  const o = odCfg();
+  // та же выписка повторно — заменяем
+  o.st = o.st.filter(x => !(x.acc && x.acc === st.acc && x.from === st.from && x.to === st.to));
+  o.st.push({ id: uid(), file: file.name, bank: st.bank, acc: st.acc, cur: st.cur || "KZT", rate: null, where, from: st.from, to: st.to || "", bin: st.bin, txs });
+  return { ok: true, txt: `${st.bank || "банк не определён"}${st.acc ? ", счёт " + st.acc : ""}${st.from ? `, ${st.from}–${st.to}` : ""}: поступлений ${txs.length}${st.cur && st.cur !== "KZT" ? `; валюта ${st.cur} — укажите курс` : ""}.${r.ocr ? " Распознано со скана — проверьте операции." : ""}` };
 }

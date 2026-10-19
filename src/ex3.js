@@ -39,7 +39,7 @@ function renderClient() {
     <div class="client"><b>${esc(X.card.name || "Новый клиент")}</b><button data-act="home">← ко всем клиентам</button></div>
     <ol class="steps">${PAGES.map(([id, t]) => `<li><button data-page="${id}"${PAGE === id ? ' aria-current="page"' : ""}>${t}<span class="dot ${dots[id]}"></span></button></li>`).join("")}</ol>
     <div class="foot"><div class="foot-save"><button class="btn ghost" style="padding-left:0" data-act="save">Сохранить в файл</button><br>Все суммы — тыс. тг. Данные только в этом браузере.</div><div class="copy">© 2026 Создан ОФКК Костанай</div></div>
-  </nav><main class="main">${body}</main></div><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf,.jpg,.jpeg,.png" class="hidden">`;
+  </nav><main class="main">${body}</main></div><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf,.jpg,.jpeg,.png" class="hidden"><input type="file" id="stfile" multiple accept=".pdf,.xlsx,.xlsm,.xls" class="hidden">`;
   const cur = document.querySelector('.steps [aria-current="page"]'); if (cur && window.innerWidth <= 860) cur.scrollIntoView({ inline: "center", block: "nearest" });
 }
 // перерисовка с сохранением фокуса и прокрутки
@@ -77,33 +77,75 @@ function pageCard() {
   ${od ? odPanel() : ""}
   <div class="row noprint"><button class="btn primary" data-page="fin">Дальше: финансовая отчётность →</button></div>`;
 }
+let OD_SHOW = "ex";   // какие операции показывать: исключённые / все
 function odPanel() {
-  const d = odCalc(), o = d.o;
+  const d = odCalc(), o = d.o, S = d.S;
   const sel = (k, list) => `<select class="inp" data-k="od.${k}">${opts(list, String(o[k]))}</select>`;
   const onum = (k, ph = "") => num(o[k], "od." + k, ph ? `placeholder="${esc(ph)}"` : "");
+  const autoBox = (v, unit = "") => `<div class="calcbox">${isNum(v) ? fmt(v, unit === "%" ? "1" : "m") + (unit ? " " + unit : "") : "—"}</div><span class="fnote">по выпискам</span>`;
   const chk = odChecks(d);
+  const cell = (r, w) => S[w].has ? `<td class="auto">${r[w] === null ? '<span class="muted small">нет выписки</span>' : T(r[w])}</td>` : `<td class="c">${num(r[w], `odm.${r.ym}.${w}`)}</td>`;
   return `<section class="panel"><h2>Овердрафт: расчёт лимита</h2>
-    <p class="hint">Лимит = 40 % среднемесячных очищенных поступлений за ${d.n} полных месяцев до месяца заявки — отдельно по нашему банку и по другим банкам (не более 2)${+o.tranche === 90 ? "; при транше до 90 дней — не более 100 млн тг" : ""}. Очищенные поступления — без кредитов и займов, переводов между своими счетами, конвертации, возвратов, финансовой помощи, субсидий и взносов наличными (инкассация, банкоматы и POS — учитываются).</p>
+    <p class="hint">Лимит = 40 % среднемесячных очищенных кредитовых оборотов за ${d.n} полных месяцев до месяца заявки — отдельно по нашему банку и по другим банкам (не более 2)${+o.tranche === 90 ? "; при транше до 90 дней — не более 100 млн тг" : ""}. Загрузите выписки — сайт сам уберёт из поступлений то, что не считается оборотом, и заполнит таблицу. Без выписок поступления можно внести вручную.</p>
     <div class="grid g3">
       ${fld("Месяц заявки", `<input class="inp" type="month" data-k="od.appMonth" value="${esc(o.appMonth || ymNow())}">`)}
       ${fld("Сезонный бизнес", sel("seasonal", ["Нет", "Да"]))}
       ${fld("Строительство или сельское хозяйство", sel("banned", ["Нет", "Да"]))}
       ${fld("Срок деятельности, мес.", onum("exp", `нужно от ${d.needExp}`))}
-      ${fld("Покупателей за период", onum("buyers", "не менее 3"))}
-      ${fld("Доля крупнейшего покупателя, %", onum("topShare", "до 60"))}
-      ${fld("Других банков с оборотами", onum("otherBanks", "не более 2"))}
+      ${fld("Покупателей за период", d.auto ? autoBox(d.buyers) : onum("buyers", "не менее 3"))}
+      ${fld("Доля крупнейшего покупателя", d.auto ? autoBox(d.topShare, "%") : onum("topShare", "%, до 60"))}
+      ${fld("Других банков с оборотами", S.other.has ? autoBox(d.otherBanks) : onum("otherBanks", "не более 2"))}
     </div>
-    <div class="tw" style="margin-top:16px"><table class="t odt"><thead><tr><th class="l">Месяц</th><th>Поступления в нашем банке</th><th>В других банках</th><th>Итого</th></tr></thead><tbody>
-    ${d.rows.map((r, i) => `<tr><td class="l">${ymLabel(r.ym)}</td><td class="c">${num(r.our, `odm.${r.ym}.our`)}</td><td class="c">${num(r.other, `odm.${r.ym}.other`)}</td><td class="${d.tot[i] <= 0 && d.filled ? "neg" : ""}">${T(isNum(r.our) || isNum(r.other) ? d.tot[i] : null)}</td></tr>`).join("")}
-    <tr class="tot"><td class="l">Всего за ${d.n} мес.</td><td>${T(d.sOur)}</td><td>${T(d.sOther)}</td><td>${T(d.sOur + d.sOther)}</td></tr>
-    <tr><td class="l">Среднемесячно${d.adj < 1 ? " (с ограничением крупного покупателя)" : ""}</td><td>${T(d.avgOur)}</td><td>${T(d.avgOther)}</td><td>${T(d.avgOur + d.avgOther)}</td></tr>
-    <tr class="tot"><td class="l">Лимит — 40 % от среднемесячных</td><td>${T(d.limOur)}</td><td>${T(d.limOther)}</td><td>${T(d.lim)}</td></tr>
+  </section>
+  <section class="panel"><h2>Выписки по счетам</h2>
+    <p class="hint">PDF или Excel из интернет-банка, за ${d.n} месяцев до месяца заявки (${ymLabel(d.win[0])} — ${ymLabel(d.win[d.win.length - 1])}). Перед загрузкой выберите, где открыт счёт.</p>
+    <div class="row" style="margin-bottom:10px">${fld("Счёт открыт", `<select class="inp" data-k="od.stWhere">${opts([["our", "в нашем банке"], ["other", "в другом банке"]], o.stWhere || "our")}</select>`)}</div>
+    <div class="drop" id="sdrop"><b>Перетащите выписки сюда</b>или <button class="btn" data-act="pickst">выберите на компьютере</button><div class="small muted">Можно несколько файлов сразу: по каждому счёту и за разные месяцы.</div></div>
+    ${OD_LOG.length ? `<div class="flist">${OD_LOG.map(r => `<div class="fitem ${r.ok ? "ok" : "err"}"><span class="ic">${r.ok ? "✓" : "!"}</span><div class="fn"><b>${esc(r.file)}</b><br>${esc(r.txt || r.err)}</div></div>`).join("")}</div>` : ""}
+    ${o.st.length ? `<div class="tw" style="margin-top:14px"><table class="t"><thead><tr><th class="l">Банк, счёт</th><th class="l">Период</th><th class="l">Где открыт</th><th class="l">Валюта</th><th>Поступлений</th><th></th></tr></thead><tbody>
+      ${o.st.map((x, i) => `<tr><td class="l">${esc(x.bank || "банк не определён")}<span class="note">${esc(x.acc || x.file)}</span></td><td class="l">${esc(x.from ? `${x.from} — ${x.to}` : "—")}</td>
+        <td class="c"><select class="inp" data-k="ost.${i}.where">${opts([["our", "наш банк"], ["other", "другой банк"]], x.where)}</select></td>
+        <td class="${x.cur !== "KZT" ? "c" : "l"}">${x.cur !== "KZT" ? num(x.rate, `ost.${i}.rate`, `placeholder="курс ${esc(x.cur)}"`) : "KZT"}</td><td>${x.txs.length}</td><td class="x"><button class="xbtn" data-rmst="${i}" title="Удалить выписку">×</button></td></tr>`).join("")}
+    </tbody></table></div>` : ""}
+    ${d.auto ? odExTable(d) : ""}
+  </section>
+  <section class="panel"><h2>Очищенные обороты по месяцам</h2>
+    <div class="tw"><table class="t odt"><thead><tr><th class="l">Месяц</th><th>В нашем банке</th><th>В других банках</th><th>Итого</th>${d.auto ? "<th>Поступлений, шт.</th>" : ""}</tr></thead><tbody>
+    ${d.rows.map((r, i) => `<tr><td class="l">${ymLabel(r.ym)}</td>${cell(r, "our")}${cell(r, "other")}<td class="${d.tot[i] <= 0 && d.filled ? "neg" : ""}">${T(isNum(r.our) || isNum(r.other) ? d.tot[i] : null)}</td>${d.auto ? `<td class="${r.nOps < 3 ? "neg" : ""}">${r.nOps}</td>` : ""}</tr>`).join("")}
+    <tr class="tot"><td class="l">Всего за ${d.n} мес.</td><td>${T(d.sOur)}</td><td>${T(d.sOther)}</td><td>${T(d.sOur + d.sOther)}</td>${d.auto ? "<td></td>" : ""}</tr>
+    <tr><td class="l">Среднемесячно${d.cutAny ? " (с ограничением крупного покупателя 60 %)" : ""}</td><td>${T(d.avgOur)}</td><td>${T(d.avgOther)}</td><td>${T(d.avgOur + d.avgOther)}</td>${d.auto ? "<td></td>" : ""}</tr>
+    <tr class="tot"><td class="l">Лимит — 40 % от среднемесячных</td><td>${T(d.limOur)}</td><td>${T(d.limOther)}</td><td>${T(d.lim)}</td>${d.auto ? "<td></td>" : ""}</tr>
     </tbody></table></div>
     <div class="odres"><div><span>Расчётный лимит</span><b>${fmt(d.limit)} тыс. тг</b>${d.capHit ? `<i>ограничен 100 млн тг (транш до 90 дней)</i>` : ""}</div><div><span>Запрашивают</span><b>${N(X.card.amount) ? fmt(X.card.amount) + " тыс. тг" : "—"}</b>${N(X.card.amount) ? `<i>${N(X.card.amount) <= d.limit + 0.5 ? "укладывается в лимит" : "больше лимита"}</i>` : ""}</div></div>
     <h3 style="margin:18px 0 8px">Условия овердрафта</h3>
     <div class="odchk">${chk.map(k => `<div class="${k.sev}"><span class="tag ${k.sev}">${SEVT[k.sev]}</span><b>${esc(k.t)}</b><em>${esc(k.fact)}</em></div>`).join("")}</div>
   </section>`;
 }
+let OD_LOG = [];
+// исключения по 8 пунктам + крупнейшие отправители + список операций
+function odExTable(d) {
+  const S = d.S, o = d.o, ws = new Set(d.win), own = odOwn(o);
+  const rows = Object.entries(OD_EX).map(([k, t]) => { const v = S.our.ex[k].v + S.other.ex[k].v, n = S.our.ex[k].n + S.other.ex[k].n; return `<tr${n ? "" : ' class="zero"'}><td class="l">${t}</td><td>${n || "—"}</td><td>${n ? T(v) : "—"}</td></tr>`; }).join("");
+  const exTot = sum(Object.keys(OD_EX).map(k => S.our.ex[k].v + S.other.ex[k].v)), gross = S.our.gross + S.other.gross;
+  const ops = [];
+  o.st.forEach((x, si) => x.txs.forEach((t, ti) => { if (!ws.has((t.d || "").slice(0, 7))) return; const cat = odCat(t, own); if (OD_SHOW === "ex" && !cat) return; ops.push({ t, si, ti, cat, w: x.where }); }));
+  ops.sort((a, b) => a.t.d.localeCompare(b.t.d));
+  const catOpts = [["inc", "учитывается"], ...Object.entries(OD_EX)];
+  return `<h3 style="margin:18px 0 8px">Что исключено из поступлений</h3>
+    <div class="tw"><table class="t odex"><thead><tr><th class="l">Вид поступления (по методике)</th><th>Операций</th><th>Сумма, тыс. тг</th></tr></thead><tbody>${rows}
+      <tr class="tot"><td class="l">Всего поступлений за период</td><td></td><td>${T(gross)}</td></tr>
+      <tr class="tot"><td class="l">Исключено</td><td></td><td>${T(exTot)}</td></tr>
+      <tr class="tot"><td class="l">Очищенные обороты</td><td></td><td>${T(gross - exTot)}</td></tr></tbody></table></div>
+    ${d.cpl.length ? `<h3 style="margin:18px 0 8px">Крупнейшие покупатели</h3><div class="tw"><table class="t"><thead><tr><th class="l">Отправитель</th><th>Сумма, тыс. тг</th><th>Доля</th></tr></thead><tbody>${d.cpl.slice(0, 5).map(x => `<tr><td class="l">${esc(x.name)}</td><td>${T(x.v)}</td><td class="${x.v / d.cpTot > 0.6 ? "neg" : ""}">${fmt(x.v / d.cpTot, "p")}</td></tr>`).join("")}</tbody></table></div>` : ""}
+    <details class="ops"${OD_OPEN ? " open" : ""}><summary>Операции за период: ${OD_SHOW === "ex" ? "исключённые" : "все"} (${ops.length}) — проверить и при необходимости изменить</summary>
+      <div class="row" style="margin:10px 0"><button class="btn${OD_SHOW === "ex" ? " primary" : ""}" data-odshow="ex">Только исключённые</button><button class="btn${OD_SHOW === "all" ? " primary" : ""}" data-odshow="all">Все поступления</button></div>
+      <div class="tw"><table class="t ops"><thead><tr><th class="l">Дата</th><th class="l">Отправитель</th><th class="l">Назначение платежа</th><th>Сумма, тг</th><th class="l">В расчёте</th></tr></thead><tbody>
+      ${ops.slice(0, 400).map(x => `<tr${x.t.ov ? ' class="man"' : ""}><td class="l">${x.t.d.split("-").reverse().join(".")}</td><td class="l">${esc(x.t.cp || "—")}${x.t.bin ? `<span class="note">${x.t.bin}</span>` : ""}</td><td class="l purp">${esc(x.t.purp || x.t.op || "—")}${x.t.knp ? `<span class="note">КНП ${x.t.knp}</span>` : ""}</td><td>${fmt(x.t.cr)}</td>
+        <td class="c"><select class="inp" data-k="otx.${x.si}.${x.ti}">${opts(catOpts, x.cat || "inc")}</select></td></tr>`).join("") || `<tr><td colspan="5" class="l muted">Нет операций.</td></tr>`}
+      </tbody></table></div>${ops.length > 400 ? `<p class="small muted">Показаны первые 400 операций.</p>` : ""}
+    </details>`;
+}
+let OD_OPEN = false;
 
 /* ---------------------------------------------------------------- 2. Финансовая отчётность */
 function pageFin() {
@@ -241,7 +283,11 @@ function buildConclusion(pr, v) {
   if (isOD(c)) {
     const d = odCalc();
     H("3. Лимит овердрафта");
-    P(`Очищенные поступления за ${d.n} мес. до месяца заявки: в нашем банке ${t(d.sOur)}, в других банках ${t(d.sOther)}; среднемесячно ${t(d.avgOur + d.avgOther)}${d.adj < 1 ? " (поступления крупнейшего покупателя учтены не более 60 %)" : ""}.`);
+    P(`Очищенные поступления за ${d.n} мес. до месяца заявки${d.auto ? " (по выпискам)" : ""}: в нашем банке ${t(d.sOur)}, в других банках ${t(d.sOther)}; среднемесячно ${t(d.avgOur + d.avgOther)}${d.cutAny ? " (поступления крупнейшего покупателя учтены не более 60 %)" : ""}.`);
+    if (d.auto) {
+      const exs = Object.entries(OD_EX).map(([k, nm]) => [nm.replace(/^\d+\.\s*/, "").toLowerCase(), d.S.our.ex[k].v + d.S.other.ex[k].v]).filter(x => x[1] > 0);
+      P(`Всего поступлений по выпискам — ${t(d.S.our.gross + d.S.other.gross)}${exs.length ? `; исключено ${t(sum(exs.map(x => x[1])))}: ${exs.map(([nm, v]) => `${nm} — ${t(v)}`).join("; ")}` : "; исключений нет"}.`);
+    }
     P(`Расчётный лимит — ${t(Math.floor(d.limit / 100) * 100)}${d.capHit ? " (ограничен 100 млн тг при транше до 90 дней)" : ""}. ${N(c.amount) ? (N(c.amount) <= d.limit + 0.5 ? "Запрошенная сумма укладывается в лимит." : `Запрошено ${t(c.amount)} — больше лимита.`) : ""}`);
     P(`Транш до ${odCfg().tranche} дней, срок кредитной линии ${c.term || "—"} мес. ${m.payKnown ? `Взнос по действующим кредитам — около ${t(m.payExist)} в месяц.` : ""}`);
     P("Условия овердрафта:");

@@ -10,7 +10,7 @@ function ask(msg, yes = "Да", no = "Отмена") {
     document.body.appendChild(m); m.querySelector('[data-q="1"]').focus();
   });
 }
-function openClient(c, page = "card") { X = c; PAGE = page; UPL = { pid: null, units: "auto", log: [] }; renderClient(); window.scrollTo(0, 0); }
+function openClient(c, page = "card") { X = c; PAGE = page; UPL = { pid: null, units: "auto", log: [] }; OD_LOG = []; OD_SHOW = "ex"; OD_OPEN = false; renderClient(); window.scrollTo(0, 0); }
 
 function onChange(el) {
   const k = el.dataset.k; if (!k) return false;
@@ -25,6 +25,8 @@ function onChange(el) {
   }
   else if (parts[0] === "f") { setFv(parts[1], parts[2], nval()); }
   else if (parts[0] === "od") { const o = odCfg(), f = parts[1]; o[f] = ["exp", "buyers", "topShare", "otherBanks"].includes(f) ? nval() : f === "tranche" ? +raw : raw; }
+  else if (parts[0] === "ost") { const x = odCfg().st[+parts[1]]; if (parts[2] === "rate") x.rate = nval(); else x[parts[2]] = raw; }
+  else if (parts[0] === "otx") { const t = odCfg().st[+parts[1]].txs[+parts[2]]; delete t.ov; const auto = odCat(t, odOwn(odCfg())) || "inc"; if (raw !== auto) t.ov = raw; }
   else if (parts[0] === "odm") { const o = odCfg(), ym = parts[1]; o.m[ym] = o.m[ym] || {}; const v = nval(); if (isNum(v)) o.m[ym][parts[2]] = v; else delete o.m[ym][parts[2]]; }
   else if (parts[0] === "p") { const p = X.per[+parts[1]]; if (parts[2] === "months") { const v = nval(); p.months = isNum(v) && v >= 1 && v <= 12 ? Math.round(v) : 12; } else p.date = raw; }
   else if (parts[0] === "d") {
@@ -34,6 +36,17 @@ function onChange(el) {
     else { d[f] = raw; if (f === "form") d.formName = { "100": "КПН (ф. 100.00)", "910": "Упрощённая декларация (ф. 910.00)", "300": "НДС (ф. 300.00)", "200": "ИПН и социальный налог (ф. 200.00)", "220": "ИПН (ф. 220.00)" }[raw] || raw; }
   }
   touch(); return true;
+}
+async function handleStmts(files) {
+  if (!files || !files.length) return;
+  const where = odCfg().stWhere || "our";
+  for (const f of files) {
+    toast(`Читаю выписку ${f.name}…`);
+    let r; try { r = await odImportStmt(f, where, (i, n) => toast(`Распознаю скан: страница ${i} из ${n}…`)); } catch (e) { r = { err: "ошибка разбора: " + e.message }; }
+    OD_LOG.unshift({ file: f.name, ...r });
+  }
+  OD_LOG = OD_LOG.slice(0, 10);
+  touch(); saveAll(true); rerender(); toast("Выписки разобраны — проверьте исключения");
 }
 async function handleFiles(files) {
   if (!files || !files.length) return;
@@ -59,6 +72,8 @@ document.addEventListener("click", async e => {
   if (d.add) { const arr = X.card[d.add] = X.card[d.add] || []; arr.push(d.add === "loans" ? { bank: "", kind: "Кредит", balance: null, pay: null, end: "", overdue: "no", refin: false } : d.add === "coll" ? { type: "Недвижимость коммерческая", desc: "", owner: "", value: null, disc: COLL["Недвижимость коммерческая"] } : { name: "", type: "Физическое лицо", rel: "", note: "" }); touch(); rerender(); return; }
   if (d.rm) { const [arr, i] = d.rm.split("."); X.card[arr].splice(+i, 1); touch(); rerender(); return; }
   if (d.rmper !== undefined) { const i = +d.rmper, p = X.per[i]; if (!(await ask(`Удалить период «${perLabel(p)}» и все его цифры?`, "Удалить"))) return; for (const k of Object.keys(X.fin)) delete X.fin[k][p.id]; X.per.splice(i, 1); touch(); rerender(); return; }
+  if (d.rmst !== undefined) { if (!(await ask("Удалить выписку из расчёта?", "Удалить"))) return; odCfg().st.splice(+d.rmst, 1); touch(); rerender(); return; }
+  if (d.odshow) { OD_SHOW = d.odshow; OD_OPEN = true; rerender(); return; }
   if (d.rmdecl !== undefined) { X.decl.splice(+d.rmdecl, 1); touch(); rerender(); return; }
   switch (d.act) {
     case "new": { const c = newClient(); CLIENTS.push(c); saveAll(true); openClient(c); break; }
@@ -68,6 +83,7 @@ document.addEventListener("click", async e => {
     case "save": download(`Экспресс_${(X.card.name || "клиент").replace(/[^\wА-Яа-яЁёӘәҒғҚқҢңӨөҰұҮүҺһІі -]+/g, "").trim() || "клиент"}_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: "finkz-express", v: 1, client: X }, null, 1)); toast("Файл сохранён в «Загрузки»"); break;
     case "addper": { const last = X.per[X.per.length - 1], y = last && last.date ? +last.date.slice(0, 4) + 1 : new Date().getFullYear(); X.per.push({ id: uid(), date: `${y}-${N(last?.months) === 12 ? "09-30" : "12-31"}`, months: N(last?.months) === 12 ? 9 : 12 }); touch(); rerender(); break; }
     case "pick": $("#ufile").click(); break;
+    case "pickst": $("#stfile").click(); break;
     case "adddecl": X.decl.push({ id: uid(), file: "", form: "100", formName: "КПН (ф. 100.00)", year: new Date().getFullYear() - 1, part: "Y", vals: {} }); touch(); rerender(); break;
     case "copy": { const txt = docText(buildConclusion(problems(), verdict(problems()))); try { await navigator.clipboard.writeText(txt); toast("Текст заключения скопирован"); } catch (err) { const r = document.createRange(); r.selectNodeContents($(".doc")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Текст выделен — нажмите Ctrl+C"); } break; }
     case "print": window.print(); break;
@@ -77,6 +93,7 @@ document.addEventListener("change", e => {
   const el = e.target;
   if (el.id === "ofile") { const f = el.files[0]; if (!f) return; f.text().then(txt => { try { const o = JSON.parse(txt), c = o.client || o; if (!c.card || !c.per) throw new Error(); c.id = uid(); c.demo = false; CLIENTS.push(c); saveAll(true); openClient(c); toast("Клиент открыт из файла"); } catch (err) { toast("Это не файл экспресс-анализа"); } }); return; }
   if (el.id === "ufile") { handleFiles([...el.files]); el.value = ""; return; }
+  if (el.id === "stfile") { handleStmts([...el.files]); el.value = ""; return; }
   if (el.dataset.upl) { UPL[el.dataset.upl] = el.value; return; }
   if (onChange(el)) { PENDING = true; if (!PD) setTimeout(flush, 0); }
 });
@@ -87,9 +104,10 @@ document.addEventListener("pointerdown", () => { PD = true; }, true);
 document.addEventListener("pointerup", () => { PD = false; setTimeout(flush, 0); }, true);
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input.inp")) e.target.blur(); });
 document.addEventListener("focusin", e => { if (e.target.matches("input.num")) { const v = parseNum(e.target.value); if (isNum(v)) e.target.value = String(v).replace(".", ","); e.target.select(); } });
-document.addEventListener("dragover", e => { const d = e.target.closest?.("#drop"); if (d) { e.preventDefault(); d.classList.add("on"); } });
-document.addEventListener("dragleave", e => { const d = e.target.closest?.("#drop"); if (d) d.classList.remove("on"); });
-document.addEventListener("drop", e => { const d = e.target.closest?.("#drop"); if (!d) return; e.preventDefault(); d.classList.remove("on"); handleFiles([...e.dataTransfer.files]); });
+document.addEventListener("toggle", e => { if (e.target.matches && e.target.matches("details.ops")) OD_OPEN = e.target.open; }, true);
+document.addEventListener("dragover", e => { const d = e.target.closest?.("#drop, #sdrop"); if (d) { e.preventDefault(); d.classList.add("on"); } });
+document.addEventListener("dragleave", e => { const d = e.target.closest?.("#drop, #sdrop"); if (d) d.classList.remove("on"); });
+document.addEventListener("drop", e => { const d = e.target.closest?.("#drop, #sdrop"); if (!d) return; e.preventDefault(); d.classList.remove("on"); (d.id === "sdrop" ? handleStmts : handleFiles)([...e.dataTransfer.files]); });
 window.addEventListener("beforeunload", () => saveAll(true));
 
 /* ---------------------------------------------------------------- пример: вымышленная компания */
