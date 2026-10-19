@@ -1,0 +1,5 @@
+Экспресс_*.json
+*.xlsx
+*.xls
+*.pdf
+__pycache__/
