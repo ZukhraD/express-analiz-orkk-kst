@@ -9,7 +9,7 @@ css = fontcss + open("src/ex.css", encoding="utf-8").read()
 parts = ["ex1.js", "read_xlsx.js", "read_pdf.js", "read_decl.js", "ocr.js", "ex2.js", "ex3.js", "ex4.js"]
 js = "\n".join(open("src/" + f, encoding="utf-8").read().replace('"use strict";', "", 1) for f in parts)
 html = f"""<!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#023DFF"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'self' data: blob:">
 <title>Экспресс-анализ для КМ</title>
 <style>{css}</style></head>

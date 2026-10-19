@@ -87,6 +87,7 @@ document.addEventListener("click", async e => {
     case "adddecl": X.decl.push({ id: uid(), file: "", form: "100", formName: "КПН (ф. 100.00)", year: new Date().getFullYear() - 1, part: "Y", vals: {} }); touch(); rerender(); break;
     case "copy": { const txt = docText(buildConclusion(problems(), verdict(problems()))); try { await navigator.clipboard.writeText(txt); toast("Текст заключения скопирован"); } catch (err) { const r = document.createRange(); r.selectNodeContents($(".doc")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Текст выделен — нажмите Ctrl+C"); } break; }
     case "print": window.print(); break;
+    case "share": { const txt = docText(buildConclusion(problems(), verdict(problems()))); try { await navigator.share({ title: "Экспресс-анализ: " + (X.card.name || "клиент"), text: txt }); } catch (err) { /* отменено */ } break; }
   }
 });
 document.addEventListener("change", e => {
@@ -140,4 +141,7 @@ function demoClient() {
   return c;
 }
 
+// поворот экрана или изменение окна — перестраиваем интерфейс под устройство
+let RZ = 0;
+window.addEventListener("resize", () => { clearTimeout(RZ); RZ = setTimeout(() => { if (!applyDevice()) return; const a = document.activeElement; if (a && a.matches && a.matches("input, textarea, select")) return; X ? rerender() : renderHome(); }, 200); });
 renderHome();

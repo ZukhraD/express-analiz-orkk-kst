@@ -2,6 +2,38 @@
 /* ================================================================ Экспресс-анализ: интерфейс */
 const $ = (s, el = document) => el.querySelector(s);
 let PAGE = "card", UPL = { pid: null, units: "auto", log: [] };
+/* ---------------------------------------------------------------- устройство: телефон / планшет / компьютер.
+   Учитываются ширина экрана, сенсорное управление и сам аппарат (iPad в новых iOS выдаёт себя за компьютер).
+   Результат — атрибут data-device на <html>; при повороте экрана и изменении окна определяется заново. */
+const DEVICE_TXT = { phone: "телефон", tablet: "планшет", desktop: "компьютер" };
+function detectDevice() {
+  const ua = navigator.userAgent || "", w = window.innerWidth, h = window.innerHeight;
+  const touch = (navigator.maxTouchPoints || 0) > 0 || matchMedia("(pointer: coarse)").matches;
+  const ipad = /iPad/.test(ua) || (/Macintosh/.test(ua) && (navigator.maxTouchPoints || 0) > 1);
+  const phoneUA = /iPhone|iPod|Android.+Mobile|Windows Phone|Mobile Safari(?!.*iPad)/i.test(ua) && !ipad;
+  const tabletUA = ipad || (/Android/i.test(ua) && !/Mobile/i.test(ua)) || /Tablet|Silk|Kindle/i.test(ua);
+  const short = Math.min(w, h);
+  let d;
+  if (phoneUA || w < 600) d = "phone";
+  else if (tabletUA || (touch && short <= 1100 && w <= 1366)) d = w >= 1200 && !touch ? "desktop" : "tablet";
+  else d = w < 900 ? "tablet" : "desktop";
+  return { d, touch };
+}
+let DEV = "desktop", TOUCH = false;
+function applyDevice() {
+  const { d, touch } = detectDevice(), changed = d !== DEV || touch !== TOUCH;
+  DEV = d; TOUCH = touch;
+  document.documentElement.dataset.device = d;
+  document.documentElement.dataset.touch = touch ? "1" : "0";
+  return changed;
+}
+applyDevice();
+const ICONS = {
+  card: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 10h6M7 14h10"/></svg>',
+  fin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>',
+  an: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  concl: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4L19 6"/><rect x="2" y="2" width="20" height="20" rx="5"/></svg>',
+};
 const PAGES = [["card", "Карточка клиента"], ["fin", "Финансовая отчётность"], ["an", "Анализ"], ["concl", "Заключение"]];
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2800); }
 const tip = t => `<span class="tip" title="${esc(t)}">?</span>`;
@@ -23,7 +55,7 @@ function renderHome() {
     ${list.length ? `<div class="clist">${list.map(c => { const v = clientVerdict(c); return `<div class="citem" data-open="${c.id}"><div class="nm"><b>${esc(c.card.name || "Без названия")}${c.demo ? ' <span class="tag nd">пример</span>' : ""}</b><span class="small muted">${esc([c.card.bin, c.card.product, isNum(c.card.amount) ? fmt(c.card.amount) + " тыс. тг" : ""].filter(Boolean).join(" · "))} · изменён ${new Date(c.updated).toLocaleDateString("ru-RU")}</span></div><span class="tag ${v.sev}">${esc(v.title)}</span><button class="xbtn" title="Удалить" data-del="${c.id}">×</button></div>`; }).join("")}</div>`
       : `<div class="empty">Пока нет клиентов. Нажмите «Новый клиент» или посмотрите «Пример для заполнения».</div>`}
     <p class="small muted" style="margin-top:24px">Данные хранятся только в этом браузере на этом компьютере и никуда не отправляются. Регистрация не нужна. Чтобы перенести клиента на другой компьютер — кнопка «Сохранить в файл» внутри клиента. Все суммы — в тыс. тенге.</p>
-    <footer class="homefoot">© 2026 Создан ОФКК Костанай</footer>
+    <footer class="homefoot"><span>© 2026 Создан ОФКК Костанай</span><span class="dev">Интерфейс: ${DEVICE_TXT[DEV]}</span></footer>
   </div><div id="toast"></div><input type="file" id="ofile" accept=".json" class="hidden">`;
 }
 function clientVerdict(c) { const keep = X; X = c; let v; try { v = verdict(problems()); } catch (e) { v = { sev: "nd", title: "—" }; } X = keep; return v; }
@@ -39,8 +71,9 @@ function renderClient() {
     <div class="client"><b>${esc(X.card.name || "Новый клиент")}</b><button data-act="home">← ко всем клиентам</button></div>
     <ol class="steps">${PAGES.map(([id, t]) => `<li><button data-page="${id}"${PAGE === id ? ' aria-current="page"' : ""}>${t}<span class="dot ${dots[id]}"></span></button></li>`).join("")}</ol>
     <div class="foot"><div class="foot-save"><button class="btn ghost" style="padding-left:0" data-act="save">Сохранить в файл</button><br>Все суммы — тыс. тг. Данные только в этом браузере.</div><div class="copy">© 2026 Создан ОФКК Костанай</div></div>
-  </nav><main class="main">${body}</main></div><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf,.jpg,.jpeg,.png" class="hidden"><input type="file" id="stfile" multiple accept=".pdf,.xlsx,.xlsm,.xls" class="hidden">`;
-  const cur = document.querySelector('.steps [aria-current="page"]'); if (cur && window.innerWidth <= 860) cur.scrollIntoView({ inline: "center", block: "nearest" });
+  </nav><main class="main">${body}<footer class="mfoot"><button class="btn ghost" data-act="save">Сохранить в файл</button><span>Все суммы — тыс. тг. Данные только в этом браузере.</span><span class="copy">© 2026 Создан ОФКК Костанай</span></footer></main></div>
+  <nav class="tabbar" aria-label="Разделы">${PAGES.map(([id, t]) => `<button data-page="${id}"${PAGE === id ? ' aria-current="page"' : ""}>${ICONS[id]}<span>${t.replace("Финансовая отчётность", "Отчётность").replace("Карточка клиента", "Карточка")}</span><i class="dot ${dots[id]}"></i></button>`).join("")}</nav><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf,.jpg,.jpeg,.png,image/*" class="hidden"><input type="file" id="stfile" multiple accept=".pdf,.xlsx,.xlsm,.xls" class="hidden">`;
+  const cur = document.querySelector('.steps [aria-current="page"]'); if (cur && DEV !== "desktop") cur.scrollIntoView({ inline: "center", block: "nearest" });
 }
 // перерисовка с сохранением фокуса и прокрутки
 function rerender() {
@@ -100,7 +133,7 @@ function odPanel() {
   <section class="panel"><h2>Выписки по счетам</h2>
     <p class="hint">PDF или Excel из интернет-банка, за ${d.n} месяцев до месяца заявки (${ymLabel(d.win[0])} — ${ymLabel(d.win[d.win.length - 1])}). Перед загрузкой выберите, где открыт счёт.</p>
     <div class="row" style="margin-bottom:10px">${fld("Счёт открыт", `<select class="inp" data-k="od.stWhere">${opts([["our", "в нашем банке"], ["other", "в другом банке"]], o.stWhere || "our")}</select>`)}</div>
-    <div class="drop" id="sdrop"><b>Перетащите выписки сюда</b>или <button class="btn" data-act="pickst">выберите на компьютере</button><div class="small muted">Можно несколько файлов сразу: по каждому счёту и за разные месяцы.</div></div>
+    <div class="drop" id="sdrop">${TOUCH ? `<b>Загрузить выписки</b><button class="btn primary" data-act="pickst">Выбрать файлы</button>` : `<b>Перетащите выписки сюда</b>или <button class="btn" data-act="pickst">выберите на компьютере</button>`}<div class="small muted">Можно несколько файлов сразу: по каждому счёту и за разные месяцы.</div></div>
     ${OD_LOG.length ? `<div class="flist">${OD_LOG.map(r => `<div class="fitem ${r.ok ? "ok" : "err"}"><span class="ic">${r.ok ? "✓" : "!"}</span><div class="fn"><b>${esc(r.file)}</b><br>${esc(r.txt || r.err)}</div></div>`).join("")}</div>` : ""}
     ${o.st.length ? `<div class="tw" style="margin-top:14px"><table class="t"><thead><tr><th class="l">Банк, счёт</th><th class="l">Период</th><th class="l">Где открыт</th><th class="l">Валюта</th><th>Поступлений</th><th></th></tr></thead><tbody>
       ${o.st.map((x, i) => `<tr><td class="l">${esc(x.bank || "банк не определён")}<span class="note">${esc(x.acc || x.file)}</span></td><td class="l">${esc(x.from ? `${x.from} — ${x.to}` : "—")}</td>
@@ -165,7 +198,7 @@ function pageFin() {
     </tbody></table></div>${P.length < 3 ? `<div class="row" style="margin-top:10px"><button class="btn" data-act="addper">+ Период</button></div>` : ""}</section>
   <section class="panel noprint"><h2>Загрузить документы</h2>
     <div class="row" style="margin-bottom:10px">${fld("В какой период загружать", `<select class="inp" data-upl="pid">${opts(P.map(p => [p.id, perLabel(p)]), UPL.pid)}</select>`)}${fld("Единицы в файле", `<select class="inp" data-upl="units">${opts([["auto", "определить сами"], ["t", "тенге"], ["k", "тыс. тенге"], ["m", "млн тенге"]], UPL.units)}</select>`)}</div>
-    <div class="drop" id="drop"><b>Перетащите файлы сюда</b>или <button class="btn" data-act="pick">выберите на компьютере</button><div class="small muted" style="margin-top:6px">Excel (.xlsx, .xls) или PDF с текстом (не скан). Если в форме есть колонка за прошлый год — она попадёт в предыдущий период.</div></div>
+    <div class="drop" id="drop">${TOUCH ? `<b>Загрузить документ</b><button class="btn primary" data-act="pick">Выбрать файл или сфотографировать</button>` : `<b>Перетащите файлы сюда</b>или <button class="btn" data-act="pick">выберите на компьютере</button>`}<div class="small muted" style="margin-top:6px">Excel (.xlsx, .xls) или PDF с текстом (не скан). Если в форме есть колонка за прошлый год — она попадёт в предыдущий период.</div></div>
     ${UPL.log.length ? `<div class="flist">${UPL.log.map(r => `<div class="fitem ${r.ok ? "ok" : "err"}"><span class="ic">${r.ok ? "✓" : "!"}</span><div class="fn"><b>${esc(r.file)}</b><br>${esc(r.txt || r.err)}</div></div>`).join("")}</div><p class="small muted" style="margin-top:8px">Проверьте цифры в таблице ниже — особенно итоги: «Итого активы» должны совпасть с документом.</p>` : ""}
   </section>
   <section class="panel"><h2>Баланс</h2><div class="tw"><table class="t">${head}<tbody>${rows("bal")}</tbody></table></div></section>
@@ -243,7 +276,7 @@ function odAnPanel() {
 function pageConcl(pr, v) {
   const doc = buildConclusion(pr, v);
   return `<div class="pagehead"><div class="lead"><h1>Заключение</h1><p>Готовое заключение по всем данным клиента. Оно обновляется само, когда вы меняете цифры.</p></div>
-    <div class="row noprint"><button class="btn" data-act="copy">Копировать текст</button><button class="btn primary" data-act="print">Печать / PDF</button></div></div>
+    <div class="row noprint actions">${navigator.share ? `<button class="btn" data-act="share">Поделиться</button>` : ""}<button class="btn" data-act="copy">Копировать текст</button><button class="btn primary" data-act="print">Печать / PDF</button></div></div>
   <article class="doc">${docHtml(doc)}</article>`;
 }
 const docText = doc => doc.map((b, i) => b.title ? b.title.toUpperCase() : b.h ? "\n" + b.h.toUpperCase() : b.li ? "– " + b.li : b.v ? `\nВЫВОД: ${b.v.title.toUpperCase()}\n${b.v.text}` : b.meta ? (i === doc.length - 1 ? "\n" + b.meta : b.meta) : b.p).join("\n").trim();
