@@ -44,6 +44,25 @@ const num = (v, key, extra = "") => `<input class="inp num" inputmode="decimal" 
 const fld = (label, inner, cls = "") => `<label class="fld ${cls}"><span>${label}</span>${inner}</label>`;
 const opts = (list, cur) => list.map(o => { const [v, t] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(v)}"${String(v) === String(cur) ? " selected" : ""}>${esc(t)}</option>`; }).join("");
 
+/* ---------------------------------------------------------------- отрицательные значения — красным (таблицы, поля, плашки, текст) */
+const NEG_RE = /[−-]\s?\d[\d\u00a0\u202f ]*(?:,\d+)?(?:\s?%)?/g;
+const NEG_SKIP = ".verdict, .dverdict, .odres > div:first-child, .maxsum > div:last-child, .tabbar, .rail, script, style, textarea, select, option, .tag";
+function markNeg(root = document.body) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => (n.parentElement && !n.parentElement.closest(NEG_SKIP + ", .negv") && /[−-]\s?\d/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT) });
+  const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const n of nodes) {
+    const t = n.nodeValue; NEG_RE.lastIndex = 0; let m, last = 0; const frag = document.createDocumentFragment();
+    while ((m = NEG_RE.exec(t))) {
+      // «1 − 2» (знак между числами) и даты/телефоны — не отрицательные
+      const before = t.slice(0, m.index); if (/[\d)]\s*$/.test(before) && !/\(\s*$/.test(before)) continue;
+      frag.append(t.slice(last, m.index)); const sp = document.createElement("span"); sp.className = "negv"; sp.textContent = m[0]; frag.append(sp); last = m.index + m[0].length;
+    }
+    if (!last) continue; frag.append(t.slice(last)); n.replaceWith(frag);
+  }
+  for (const el of root.querySelectorAll("input.num")) negInput(el);
+}
+const negInput = el => el.classList.toggle("negin", /^\s*[−-]\s?\d|^\(\s*\d/.test(el.value));
+
 /* ---------------------------------------------------------------- главная */
 function renderHome() {
   X = null;
@@ -75,6 +94,7 @@ function renderClient() {
     <div class="foot"><div class="foot-save"><button class="btn ghost" style="padding-left:0" data-act="save">Сохранить в файл</button><br>Все суммы — тыс. тг. Данные только в этом браузере.</div><div class="copy">© 2026 Создан ОФКК Костанай</div></div>
   </nav><main class="main">${body}<footer class="mfoot"><button class="btn ghost" data-act="save">Сохранить в файл</button><span>Все суммы — тыс. тг. Данные только в этом браузере.</span><span class="copy">© 2026 Создан ОФКК Костанай</span></footer></main></div>
   <nav class="tabbar" aria-label="Разделы">${PAGES.map(([id, t]) => `<button data-page="${id}"${PAGE === id ? ' aria-current="page"' : ""}>${ICONS[id]}<span>${t.replace("Финансовая отчётность", "Отчётность").replace("Карточка клиента", "Карточка")}</span><i class="dot ${dots[id]}"></i></button>`).join("")}</nav><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf,.jpg,.jpeg,.png,image/*" class="hidden"><input type="file" id="stfile" multiple accept=".pdf,.xlsx,.xlsm,.xls" class="hidden">`;
+  markNeg(document.querySelector(".main"));
   const cur = document.querySelector('.steps [aria-current="page"]'); if (cur && DEV !== "desktop") cur.scrollIntoView({ inline: "center", block: "nearest" });
 }
 // перерисовка с сохранением фокуса и прокрутки

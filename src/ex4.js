@@ -113,6 +113,7 @@ function flush() { if (PENDING && X && !PD) { PENDING = false; rerender(); } }
 let PD = false, PENDING = false;
 document.addEventListener("pointerdown", () => { PD = true; }, true);
 document.addEventListener("pointerup", () => { PD = false; setTimeout(flush, 0); }, true);
+document.addEventListener("input", e => { if (e.target.matches && e.target.matches("input.num")) negInput(e.target); });
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input.inp")) e.target.blur(); });
 document.addEventListener("focusin", e => { if (e.target.matches("input.num")) { const v = parseNum(e.target.value); if (isNum(v)) e.target.value = String(Math.round(v * 100) / 100).replace(".", ","); e.target.select(); } });
 document.addEventListener("toggle", e => { if (e.target.matches && e.target.matches("details.ops")) OD_OPEN = e.target.open; }, true);

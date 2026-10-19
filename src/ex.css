@@ -384,3 +384,9 @@ html[data-device="desktop"] .pagehead p.one { white-space: nowrap; }
 .fitem.warn .ic { background: #F2B01E; color: #fff; }
 .askper { margin-top: 8px; gap: 6px; }
 .askper .btn { padding: 6px 12px; }
+
+/* отрицательные значения — красным */
+.negv, table.t .neg, .neg { color: var(--crit); }
+.kpi .v .negv { color: var(--crit); }
+.inp.num.negin { color: var(--crit); }
+.calcbox .negv { color: var(--crit); }
