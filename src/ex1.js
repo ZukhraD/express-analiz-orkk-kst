@@ -73,6 +73,7 @@ const FL = {
     ["oth", "Прочие доходы минус прочие расходы", "если расходов больше — со знаком минус", null, "oth"],
     ["int", "Проценты по кредитам", "расходы по финансированию", ["int"]],
     ["cit", "Подоходный налог (КПН)", "", ["cit"]],
+    ["fam", "Расходы вне бизнеса (семья) минус доходы вне бизнеса", "для ИП и бизнеса без бухгалтерии: сколько уходит на семью", [], "opt"],
     ["ni", "ЧИСТАЯ ПРИБЫЛЬ (расчёт)", "", null, "calc"],
     ["ni_rep", "Чистая прибыль по отчётности", "для сверки — как в документе", ["ni_rep"], "opt"],
     ["da", "Амортизация", "необязательно: из пояснений или ДДС; если не знаете — оставьте пустым", [], "opt"],
@@ -122,7 +123,7 @@ function val(key, pid) {
   const d = LINEDEF[key];
   if (key === "ta") { const a = ["cash", "ar", "inv", "oca", "fa"].map(k => fv(k, pid)); return a.some(isNum) ? sum(a) : null; }
   if (key === "tle") { const a = ["ap", "debt_st", "debt_lt", "ol", "eq"].map(k => fv(k, pid)); return a.some(isNum) ? sum(a) : null; }
-  if (key === "ni") { const r = fv("rev", pid); if (!isNum(r)) return null; return r - N(fv("cogs", pid)) - N(fv("opex", pid)) + N(fv("oth", pid)) - N(fv("int", pid)) - N(fv("cit", pid)); }
+  if (key === "ni") { const r = fv("rev", pid); if (!isNum(r)) return null; return r - N(fv("cogs", pid)) - N(fv("opex", pid)) + N(fv("oth", pid)) - N(fv("int", pid)) - N(fv("cit", pid)) - N(fv("fam", pid)); }
   if (key === "debt") { const a = [fv("debt_st", pid), fv("debt_lt", pid)]; return a.some(isNum) ? sum(a) : null; }
   if (key === "ca") { const a = ["cash", "ar", "inv", "oca"].map(k => fv(k, pid)); return a.some(isNum) ? sum(a) : null; }
   if (key === "cl") { const a = ["ap", "debt_st", "ol"].map(k => fv(k, pid)); return a.some(isNum) ? sum(a) : null; }
@@ -256,11 +257,112 @@ function periodFor(date, months, kind) {
   X.per.push(p); X.per.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
   return { p, created: true };
 }
+
+/* ---------------------------------------------------------------- управленческая отчётность (шаблон банка для ИП и бизнеса без бухгалтерии):
+   листы «Баланс ГГГГ» (АКТИВ / ПАССИВ на две даты) и «ОПиУ ГГГГ» (по месяцам), суммы в тенге. Кодов строк нет — строки по названиям. */
+const xlDate = v => (typeof v === "number" && v > 36000 && v < 60000 ? new Date(Math.round((v - 25569) * 864e5)) : null);
+const lab = (row, cols) => normTxt(cols.map(c => (typeof row?.[c] === "string" ? row[c] : "")).join(" "));
+function mgmtBal(sh) {
+  const R = Math.min(sh.rows.length - 1, 60);
+  for (let r = 1; r <= Math.min(R, 15); r++) {
+    const row = sh.rows[r] || []; let aC = 0, pC = 0;
+    row.forEach((v, c) => { if (typeof v === "string") { const t = normTxt(v); if (/^актив/.test(t)) aC = c; if (/^пассив/.test(t)) pC = c; } });
+    if (!aC || !pC) continue;
+    const dcols = []; row.forEach((v, c) => { const d = xlDate(v); if (d) dcols.push({ c, d }); });
+    const aD = dcols.filter(x => x.c > aC && x.c < pC), pD = dcols.filter(x => x.c > pC);
+    if (!aD.length) continue;
+    return { r, aC, pC, aD, pD, R };
+  }
+  return null;
+}
+function mgmtPL(sh) {
+  for (let r = 1; r <= Math.min(sh.rows.length - 1, 15); r++) {
+    const row = sh.rows[r] || [], dc = []; row.forEach((v, c) => { const d = xlDate(v); if (d && d.getDate() === 1) dc.push({ c, d }); });
+    if (dc.length >= 3 && sh.rows.slice(r, r + 25).some(x => x && /выручк/.test(lab(x, [1, 2])))) return { r, dc };
+  }
+  return null;
+}
+const endOf = d => { const e = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1); return isoD(e.getFullYear(), e.getMonth() + 1, e.getDate()); };
+function importMgmt(sheets, fname) {
+  const bals = [], pls = [];
+  for (const sh of sheets) { const b = mgmtBal(sh); if (b) bals.push({ sh, b }); else { const p = mgmtPL(sh); if (p) pls.push({ sh, p }); } }
+  if (!bals.length && !pls.length) return null;
+  const head = normTxt(sheets.map(sh => sh.rows.slice(0, 4).map(r => (r || []).filter(v => typeof v === "string").join(" ")).join(" ")).join(" "));
+  const f = /тыс/.test(head) ? 1 : /млн/.test(head) ? 1000 : 0.001;      // по умолчанию — тенге
+  const rep = [], num = v => (typeof v === "number" ? v : parseNum(v) || 0);
+  // ОПиУ по месяцам → период (с начала года по последний заполненный месяц)
+  for (const { sh, p } of pls) {
+    const rows = sh.rows, L = {}; let sect = null; const sub = {};
+    for (let r = p.r + 1; r < Math.min(rows.length, p.r + 40); r++) {
+      const a = lab(rows[r], [1]), b = lab(rows[r], [2]), t = a || b;
+      const k = /выручк/.test(a) ? "rev" : /себестоим/.test(a) ? "cogs" : /расходы по бизнес/.test(a) ? "opex" : /прибыль от бизнес/.test(a) ? "pb" : /расходы вне бизнес/.test(t) ? "fam" : /доходы вне бизнес/.test(t) ? "inc" : /^чистая прибыль/.test(a) ? "ni" : /взнос по действующ/.test(t) ? "pay" : null;
+      if (k) { L[k] = r; if (["rev", "cogs", "opex"].includes(k)) sect = k; else sect = null; continue; }
+      if (sect && typeof rows[r]?.[1] === "number") (sub[sect] = sub[sect] || []).push(r);
+      if (/амм?ортизац/.test(b)) L.da = r;
+    }
+    if (!isNum(L.rev)) continue;
+    const mval = (key, c) => { const r = L[key]; if (!isNum(r)) return 0; const v = rows[r]?.[c]; if (typeof v === "number") return v; return (sub[key] || []).reduce((x, rr) => x + num(rows[rr]?.[c]), 0); };
+    const filled = p.dc.filter(({ c }) => mval("rev", c) || mval("cogs", c) || mval("opex", c));
+    if (!filled.length) { rep.push({ err: `${sh.name}: шаблон пустой — суммы по месяцам не заполнены` }); continue; }
+    const first = p.dc[0], last = filled[filled.length - 1], months = p.dc.indexOf(last) + 1;
+    const cols = p.dc.slice(0, months).map(x => x.c), S = k => cols.reduce((x, c) => x + mval(k, c), 0);
+    const end = new Date(last.d.getFullYear(), last.d.getMonth() + 1, 1), date = endOf(end);
+    const r1 = periodFor(date, months, "P"); if (!r1.p) { rep.push({ err: `${sh.name}: все ${MAX_PER} периода заполнены — удалите лишний` }); continue; }
+    const pid = r1.p.id, put = (k, v) => setFv(k, pid, Math.round(v * f * 10) / 10);
+    put("rev", S("rev")); put("cogs", S("cogs")); put("opex", S("opex")); put("fam", S("fam") - S("inc"));
+    if (isNum(L.da)) { const d = cols.reduce((x, c) => x + num(rows[L.da]?.[c]), 0); if (d) put("da", d); }
+    setFv("int", pid, null); setFv("cit", pid, null); setFv("oth", pid, null);
+    const niRep = cols.reduce((x, c) => x + num(rows[L.ni]?.[c]), 0); if (isNum(L.ni) && cols.some(c => typeof rows[L.ni]?.[c] === "number")) put("ni_rep", niRep);
+    let payTxt = "";
+    if (isNum(L.pay)) { const pm = S("pay") / months * f; if (pm > 0) { if (!isNum(X.card.payExist)) { X.card.payExist = Math.round(pm * 10) / 10; payTxt = `; взнос по действующим кредитам ~${fmt(pm)} тыс. тг/мес. — перенесён в «Карточку»`; } else payTxt = `; взнос по кредитам в файле ~${fmt(pm)} тыс. тг/мес. (в «Карточке» оставлено ${fmt(X.card.payExist)})`; } }
+    rep.push({ ok: true, kind: "P", txt: `Управленческая ОПиУ (${sh.name}): ${months} мес. по ${last.d.toLocaleDateString("ru-RU", { month: "long", year: "numeric" })} → период «${perLabel(r1.p)}»${r1.created ? " (добавлен)" : ""}; расходы на семью учтены отдельной строкой${payTxt}. Суммы переведены в тыс. тг.` });
+  }
+  // баланс на даты (01.01.2026 = на конец 2025 года)
+  for (const { sh, b } of bals) {
+    const rows = sh.rows;
+    for (const col of b.aD) {
+      const date = endOf(col.d), pcol = b.pD.find(x => +x.d === +col.d);
+      const A = {}, P = {}; let ta = null, short = true, any = false;
+      for (let r = b.r + 1; r <= b.R; r++) {
+        const at = lab(rows[r], [b.aC]), av = rows[r]?.[col.c];
+        if (at && typeof av === "number") {
+          if (av) any = true;
+          if (/валюта баланса|итого актив/.test(at)) ta = av;
+          else if (!/итого/.test(at)) { const k = /касс|расчетн|сбережен|деньг|депозит/.test(at) ? "cash" : /дебитор/.test(at) ? "ar" : /тмз|товар|запас|сырь/.test(at) ? "inv" : /оборудован|транспорт|недвиж|нематер|инвестиц|основн|земл/.test(at) ? "fa" : "oca"; A[k] = (A[k] || 0) + av; }
+        }
+        const pt = lab(rows[r], [b.pC]), pv = pcol ? rows[r]?.[pcol.c] : null;
+        if (pt && typeof pv === "number") {
+          if (pv) any = true;
+          if (/итого краткоср/.test(pt)) { short = false; continue; }
+          if (/итого|валюта/.test(pt)) continue;
+          const k = /уставн/.test(pt) ? "sc" : /нераспред/.test(pt) ? "re" : /товарн/.test(pt) ? "ap" : /кредит\S* банк|займ/.test(pt) ? (short ? "debt_st" : "debt_lt") : /кред\S*\s+зад/.test(pt) ? (short ? "ap" : "ol") : "ol";
+          P[k] = (P[k] || 0) + pv;
+        }
+      }
+      if (!any) continue;
+      const r1 = periodFor(date, null, "B"); if (!r1.p) { rep.push({ err: `${sh.name}: все ${MAX_PER} периода заполнены — удалите лишний` }); continue; }
+      const pid = r1.p.id, put = (k, v) => setFv(k, pid, Math.round(v * f * 10) / 10);
+      for (const k of ["cash", "ar", "inv", "oca", "fa"]) put(k, A[k] || 0);
+      for (const k of ["ap", "debt_st", "debt_lt", "ol"]) put(k, P[k] || 0);
+      const assets = ["cash", "ar", "inv", "oca", "fa"].reduce((x, k) => x + (A[k] || 0), 0), liab = ["ap", "debt_st", "debt_lt", "ol"].reduce((x, k) => x + (P[k] || 0), 0);
+      const eq = isNum(P.re) ? N(P.sc) + P.re : assets - liab;   // нераспределённая прибыль в шаблоне — формула-остаток
+      put("eq", eq); if (isNum(P.re)) put("re", P.re);
+      if (isNum(ta)) put("ta_rep", ta);
+      rep.push({ ok: true, kind: "B", txt: `Управленческий баланс (${sh.name}) на ${date.split("-").reverse().join(".")} → период «${perLabel(r1.p)}»${r1.created ? " (добавлен)" : ""}. Суммы переведены в тыс. тг.` });
+    }
+  }
+  if (rep.some(x => x.ok)) X.mgmt = true;
+  if (!rep.length) rep.push({ err: "это шаблон управленческой отчётности, но он не заполнен" });
+  else X.files.unshift({ name: fname, t: Date.now(), what: "Управленческая отчётность", per: "" });
+  return rep;
+}
 const FINKEYS_DECL = ["rev", "vat_turn", "vat_ex", "fot", "cit"];
 /* один файл: финансовая отчётность (баланс/ОПиУ/ДДС) или налоговая декларация — определяется само */
 async function importFile(file, pid, units, onProg) {
   if (!/\.(xlsx|xlsm|xls|pdf|jpe?g|png)$/i.test(file.name)) return [{ err: "формат не подходит — нужен Excel (.xlsx, .xls), PDF или фото (JPG, PNG)" }];
   let r; try { r = await readAnyFile(file, onProg); } catch (e) { return [{ err: "не удалось прочитать: " + e.message }]; }
+  // управленческая отчётность (шаблон без кодов строк)?
+  if (!r.pdf) { const mg = importMgmt(r.sheets, file.name); if (mg) return mg; }
   // налоговая декларация?
   let dres = null;
   try { dres = r.pdf ? (DocParse.isDecl(r.pdf) >= 3 ? { kind: "decl", decl: DocParse.parseDecl(r.pdf) } : null) : null; } catch (e) { dres = null; }

@@ -253,7 +253,7 @@ function pageAn(pr, v) {
     </tbody></table></div></section>
   <section class="panel"><h2>Платежи в месяц</h2>
     <div class="tw"><table class="t" style="max-width:640px"><tbody>
-      <tr><td class="l">Заработок бизнеса в месяц (EBITDA − КПН) / 12</td><td>${T(m.cashMonth)}</td></tr>
+      <tr><td class="l">Заработок бизнеса в месяц (EBITDA − КПН${m.fam ? " − расходы на семью" : ""}) / 12</td><td>${T(m.cashMonth)}</td></tr>
       <tr><td class="l">— взнос по действующим кредитам</td><td>${m.payKnown ? T(m.payExist) : "не указан"}</td></tr>
       <tr><td class="l">— новый кредит</td><td>${m.newPay ? T(m.newPay.pay) : "—"}</td></tr>
       <tr class="tot"><td class="l">Все платежи</td><td>${T(m.payTotal)}</td></tr>
@@ -307,6 +307,7 @@ function buildConclusion(pr, v) {
     P(`Выручка за ${perLabel(m.pl)} — ${t(fv("rev", m.pl.id))}${m.k !== 1 ? ` (в пересчёте на год около ${t(m.rev)})` : ""}${isNum(m.revGr) ? `; ${m.revGr >= 0 ? "рост" : "снижение"} на ${fmt(Math.abs(m.revGr), "p")} к прошлому году` : ""}.`);
     P(m.ni >= 0 ? `Бизнес прибыльный: чистая прибыль ${t(val("ni", m.pl.id))}, из каждых 100 тенге выручки остаётся ${fmt(m.nm * 100, "1")} тенге.` : `Бизнес убыточный: чистый убыток ${t(val("ni", m.pl.id))}.`);
     P(`Заработок до процентов, налогов и амортизации (EBITDA) — ${t(m.ebitda)} в год${m.daKnown ? "" : " (без амортизации — оценка осторожная)"}.`);
+    if (m.fam > 0) P(`На семью (расходы вне бизнеса за вычетом доходов вне бизнеса) уходит около ${t(m.fam)} в год — это учтено при расчёте денег на платежи.`);
   } else P("Данных о выручке и прибыли нет.");
   if (m.bal) {
     P(`На ${new Date(m.bal.date).toLocaleDateString("ru-RU")}: активы ${t(m.ta)}, собственный капитал ${t(m.eq)} (${isNum(m.eqr) ? fmt(m.eqr, "p") : "—"} от активов), кредиты и займы ${t(m.debt)}.`);
