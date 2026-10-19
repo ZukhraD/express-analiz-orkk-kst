@@ -261,30 +261,46 @@ function periodFor(date, months, kind) {
 
 /* ---------------------------------------------------------------- управленческая отчётность (шаблон банка для ИП и бизнеса без бухгалтерии):
    листы «Баланс ГГГГ» (АКТИВ / ПАССИВ на две даты) и «ОПиУ ГГГГ» (по месяцам), суммы в тенге. Кодов строк нет — строки по названиям. */
-// дата в ячейке: число Excel или текст «01.10.2026»
-const xlDate = v => {
+// дата в ячейке: число Excel, «01.10.2026», «на 01.10.2026 г.», «Январь 2026», «янв.26», «январь» (год — из шапки листа)
+const MON_SHORT = ["янв", "фев", "мар", "апр", "ма[йя]", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+const xlDate = (v, yearHint) => {
   if (typeof v === "number" && v > 36000 && v < 60000) return new Date(Math.round((v - 25569) * 864e5));
-  if (typeof v === "string") { const m = /^\s*(\d{1,2})[.\/](\d{1,2})[.\/](20\d{2})\s*(г\.?)?\s*$/.exec(v); if (m && +m[2] >= 1 && +m[2] <= 12) return new Date(+m[3], +m[2] - 1, +m[1]); }
+  if (typeof v !== "string") return null;
+  const t = v.toLowerCase().replace(/ё/g, "е").trim();
+  let m = /^(?:на|по\s+состоянию\s+на)?\s*(\d{1,2})[.\/](\d{1,2})[.\/](20\d{2}|\d{2})\s*(г\.?|года?)?\s*$/.exec(t);
+  if (m && +m[2] >= 1 && +m[2] <= 12) { const y = +m[3] < 100 ? 2000 + +m[3] : +m[3]; return new Date(y, +m[2] - 1, +m[1]); }
+  if (t.length > 22) return null;
+  for (let i = 0; i < 12; i++) {
+    m = new RegExp(`^(?:за\\s+)?${MON_SHORT[i]}\\S*\\.?\\s*[-'’]?\\s*(20\\d{2}|\\d{2})?\\s*(г\\.?|года?)?$`).exec(t);
+    if (m) { const y = m[1] ? (+m[1] < 100 ? 2000 + +m[1] : +m[1]) : yearHint; if (y) return new Date(y, i, 1); }
+  }
   return null;
 };
-const lab = (row, cols) => normTxt(cols.map(c => (typeof row?.[c] === "string" ? row[c] : "")).join(" "));
+const sheetYear = sh => { const t = (sh.name || "") + " " + sh.rows.slice(0, 6).map(r => (r || []).filter(v => typeof v === "string").join(" ")).join(" "); const m = /(20\d{2})/.exec(t); return m ? +m[1] : null; };
+const cellNum = v => (typeof v === "number" ? v : typeof v === "string" && /\d/.test(v) ? parseNum(v.replace(/тг|тенге|₸/gi, "")) : null);
+const lab = (row, cols) => normTxt(cols.map(c => (typeof row?.[c] === "string" && !/^\s*[\d.,\s-]+$/.test(row[c]) ? row[c] : "")).join(" "));
 function mgmtBal(sh) {
   const R = Math.min(sh.rows.length - 1, 60);
   for (let r = 1; r <= Math.min(R, 15); r++) {
     const row = sh.rows[r] || []; let aC = 0, pC = 0;
     row.forEach((v, c) => { if (typeof v === "string") { const t = normTxt(v); if (/^актив/.test(t)) aC = c; if (/^пассив/.test(t)) pC = c; } });
     if (!aC || !pC) continue;
-    const dcols = []; row.forEach((v, c) => { const d = xlDate(v); if (d) dcols.push({ c, d }); });
-    const aD = dcols.filter(x => x.c > aC && x.c < pC), pD = dcols.filter(x => x.c > pC);
-    if (!aD.length) continue;
+    const yh = sheetYear(sh), dcols = []; row.forEach((v, c) => { const d = xlDate(v, yh); if (d) dcols.push({ c, d }); });
+    let aD = dcols.filter(x => x.c > aC && x.c < pC), pD = dcols.filter(x => x.c > pC);
+    if (!aD.length) {   // дат нет — колонка сумм справа от названий (дату возьмём у ОПиУ этого файла)
+      const numCol = (from, to) => { for (let c = from + 1; c < to; c++) { let n = 0; for (let rr = r + 1; rr <= Math.min(R, r + 20); rr++) if (cellNum(sh.rows[rr]?.[c]) !== null) n++; if (n >= 3) return c; } return 0; };
+      const ac = numCol(aC, pC), pc = numCol(pC, pC + 6); if (!ac) continue;
+      aD = [{ c: ac, d: null }]; pD = pc ? [{ c: pc, d: null }] : [];
+    }
     return { r, aC, pC, aD, pD, R };
   }
   return null;
 }
+const REV_RE = /выручк|доход\S* от реализац|^доходы?($|\s|,)|продаж\S* (товар|услуг)|^продажи|^оборот/;
 function mgmtPL(sh) {
   for (let r = 1; r <= Math.min(sh.rows.length - 1, 15); r++) {
-    const row = sh.rows[r] || [], dc = []; row.forEach((v, c) => { const d = xlDate(v); if (d && d.getDate() === 1) dc.push({ c, d }); });
-    if (dc.length >= 3 && sh.rows.slice(r, r + 25).some(x => x && /выручк/.test(lab(x, [1, 2, 3])))) return { r, dc };
+    const yh = sheetYear(sh), row = sh.rows[r] || [], dc = []; row.forEach((v, c) => { const d = xlDate(v, yh); if (d && d.getDate() === 1) dc.push({ c, d }); });
+    if (dc.length >= 3 && sh.rows.slice(r, r + 30).some(x => x && REV_RE.test(lab(x, [1, 2, 3, 4])))) return { r, dc };
   }
   return null;
 }
@@ -300,17 +316,18 @@ function importMgmt(sheets, fname) {
   // ОПиУ по месяцам → период (с начала года по последний заполненный месяц)
   for (const { sh, p } of pls) {
     const rows = sh.rows, L = {}, sub = {}, mcols = p.dc.map(x => x.c); let sect = null;
-    const hasNums = r => mcols.some(c => typeof rows[r]?.[c] === "number");
-    for (let r = p.r + 1; r < Math.min(rows.length, p.r + 45); r++) {
-      const t = lab(rows[r], [1, 2]);
+    const hasNums = r => mcols.some(c => cellNum(rows[r]?.[c]) !== null);
+    for (let r = p.r + 1; r < Math.min(rows.length, p.r + 80); r++) {
+      const t = lab(rows[r], [1, 2, 3, 4].filter(c => c < mcols[0]));
       if (/комментари/.test(t)) break;
-      const k = /выручк/.test(t) ? "rev" : /себестоим/.test(t) ? "cogs" : /валовая прибыль/.test(t) ? "gp" : /расходы по бизнес/.test(t) ? "opex" : /прибыль от бизнес|операционн\S* прибыль/.test(t) ? "pb" : /расходы вне бизнес/.test(t) ? "fam" : /доходы вне бизнес/.test(t) ? "inc" : /^чистая прибыль/.test(t) ? "ni" : /взнос по действующ/.test(t) ? "pay" : /взнос по предлага|чистый остаток|соотношени/.test(t) ? "skip" : null;
+      const k = /расходы вне бизнес|семейн\S* расход|расходы на семью|личные расходы/.test(t) ? "fam" : /доход\S* вне бизнес|прочие доходы семьи/.test(t) ? "inc" : /взнос\S*\s+(по\s+)?(действующ|текущ)|платеж\S* по (действующ|текущ)/.test(t) ? "pay" : /взнос\S* по предлага|предлагаем\S* кредит|чистый остаток|соотношени/.test(t) ? "skip"
+        : REV_RE.test(t) && !/валов|чист/.test(t) ? "rev" : /себестоим/.test(t) ? "cogs" : /валов\S* (прибыль|доход)/.test(t) ? "gp" : /^(итого\s+)?(расходы|затраты)( по бизнес| бизнес|$|,| операцион)|^операционн\S* (расходы|затраты)|^расходы, в т/.test(t) ? "opex" : /прибыль от бизнес|операционн\S* прибыль/.test(t) ? "pb" : /^чистая прибыль|^чистый доход/.test(t) ? "ni" : null;
       if (k) { if (!(k in L)) L[k] = r; sect = ["rev", "cogs", "opex"].includes(k) ? k : null; continue; }
       if (sect && hasNums(r)) { (sub[sect] = sub[sect] || []).push(r); if (sect === "opex" && /закуп|себестоим|покупк\S* товар/.test(t)) L.buy = r; if (sect === "opex" && /амм?ортизац/.test(t)) L.da = r; }
     }
     if (!isNum(L.rev)) continue;
-    const cell = (r, c) => num(rows[r]?.[c]);
-    const mval = (key, c) => { const r = L[key]; if (!isNum(r)) return 0; const v = rows[r]?.[c]; if (typeof v === "number") return v; return (sub[key] || []).reduce((x, rr) => x + cell(rr, c), 0); };
+    const cell = (r, c) => N(cellNum(rows[r]?.[c]));
+    const mval = (key, c) => { const r = L[key]; if (!isNum(r)) return 0; const v = cellNum(rows[r]?.[c]); if (v !== null && (v !== 0 || !(sub[key] || []).length)) return v; return (sub[key] || []).reduce((x, rr) => x + cell(rr, c), 0); };
     const filled = p.dc.filter(({ c }) => mval("rev", c) || mval("cogs", c) || mval("opex", c));
     if (!filled.length) { rep.push({ err: `${sh.name}: шаблон пустой — суммы по месяцам не заполнены` }); continue; }
     const last = filled[filled.length - 1], months = p.dc.indexOf(last) + 1;
@@ -324,7 +341,7 @@ function importMgmt(sheets, fname) {
     put("rev", S("rev")); put("cogs", cogs); put("opex", opex); put("fam", S("fam") - S("inc"));
     if (isNum(L.da)) { const d = Sr(L.da); if (d) put("da", d); }
     setFv("int", pid, null); setFv("cit", pid, null); setFv("oth", pid, null);
-    if (isNum(L.ni) && cols.some(c => typeof rows[L.ni]?.[c] === "number")) put("ni_rep", Sr(L.ni));
+    if (isNum(L.ni) && cols.some(c => cellNum(rows[L.ni]?.[c]) !== null)) put("ni_rep", Sr(L.ni));
     let payTxt = "";
     if (isNum(L.pay)) { const pm = S("pay") / months * f; if (pm > 0) { if (!isNum(X.card.payExist)) { X.card.payExist = Math.round(pm * 10) / 10; payTxt = `; взнос по действующим кредитам ~${fmt(pm)} тыс. тг/мес. — перенесён в «Карточку»`; } else payTxt = `; взнос по кредитам в файле ~${fmt(pm)} тыс. тг/мес. (в «Карточке» оставлено ${fmt(X.card.payExist)})`; } }
     plPeriods.push(r1.p);
@@ -334,17 +351,19 @@ function importMgmt(sheets, fname) {
   for (const { sh, b } of bals) {
     const rows = sh.rows;
     for (const col of b.aD) {
-      let date = endOf(col.d); const pcol = b.pD.find(x => +x.d === +col.d) || (b.pD.length === 1 && b.aD.length === 1 ? b.pD[0] : null);
+      let date = col.d ? endOf(col.d) : (plPeriods[0] ? plPeriods[0].date : null);
+      if (!date) { rep.push({ err: `${sh.name}: в балансе нет даты — укажите дату в шапке колонки (например, 01.10.2026)` }); continue; }
+      const pcol = b.pD.find(x => +x.d === +col.d) || (b.pD.length === 1 && b.aD.length === 1 ? b.pD[0] : null);
       const A = {}, P = {}; let ta = null, short = true, any = false;
       for (let r = b.r + 1; r <= b.R; r++) {
-        const at = lab(rows[r], [b.aC]), av = rows[r]?.[col.c];
-        if (at && typeof av === "number") {
+        const at = lab(rows[r], [b.aC]), av = cellNum(rows[r]?.[col.c]);
+        if (at && av !== null) {
           if (av) any = true;
           if (/валюта баланса|итого актив/.test(at)) ta = av;
           else if (!/итого/.test(at)) { const k = /касс|расчетн|сбережен|деньг|депозит/.test(at) ? "cash" : /дебитор/.test(at) ? "ar" : /тмз|товар|запас|сырь/.test(at) ? "inv" : /оборудован|транспорт|недвиж|нематер|инвестиц|основн|земл/.test(at) ? "fa" : "oca"; A[k] = (A[k] || 0) + av; }
         }
-        const pt = lab(rows[r], [b.pC]), pv = pcol ? rows[r]?.[pcol.c] : null;
-        if (pt && typeof pv === "number") {
+        const pt = lab(rows[r], [b.pC]), pv = pcol ? cellNum(rows[r]?.[pcol.c]) : null;
+        if (pt && pv !== null) {
           if (pv) any = true;
           if (/итого краткоср/.test(pt)) { short = false; continue; }
           if (/итого|валюта/.test(pt)) continue;
