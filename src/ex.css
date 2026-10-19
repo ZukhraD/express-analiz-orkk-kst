@@ -381,3 +381,6 @@ html[data-device="phone"] #toast { bottom: calc(84px + env(safe-area-inset-botto
 .pagehead p.one { max-width: none; }
 html[data-device="desktop"] .pagehead .lead:has(p.one) { flex: 1 1 auto; }
 html[data-device="desktop"] .pagehead p.one { white-space: nowrap; }
+.fitem.warn .ic { background: #F2B01E; color: #fff; }
+.askper { margin-top: 8px; gap: 6px; }
+.askper .btn { padding: 6px 12px; }

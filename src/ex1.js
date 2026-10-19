@@ -194,6 +194,68 @@ async function readAnyFile(file, onProg) {
   }
   return { pdf: null, sheets: await readWorkbook(buf) };
 }
+
+/* ---------------------------------------------------------------- отчётный период — по датам в шапке документа
+   «на 31 декабря 2025 г.», «по состоянию на 30.09.2026», «за 2025 год», «за 9 месяцев 2026 г.»,
+   «за период с 01.01.2026 по 30.09.2026», «1 квартал», «полугодие», казахские названия месяцев. */
+const MONTHS_RE = [["январ", "қаңтар"], ["феврал", "ақпан"], ["март", "наурыз"], ["апрел", "сәуір"], ["ма[йя]", "мамыр"], ["июн", "маусым"], ["июл", "шілде"], ["август", "тамыз"], ["сентябр", "қыркүйек"], ["октябр", "қазан"], ["ноябр", "қараша"], ["декабр", "желтоқсан"]];
+const lastDay = (y, m) => new Date(y, m, 0).getDate();
+const isoD = (y, m, d) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+function headText(sheets) {
+  let t = "";
+  for (const sh of sheets) { t += " " + (sh.name || ""); for (const row of sh.rows.slice(0, 30)) if (row) for (const v of row) if (typeof v === "string") t += " " + v; }
+  return t.toLowerCase().replace(/ё/g, "е").replace(/[  ]/g, " ").replace(/\s+/g, " ");
+}
+function findDates(t) {
+  const out = [];
+  let m; const re1 = /(\d{1,2})[.\/](\d{1,2})[.\/](20\d{2})/g;
+  while ((m = re1.exec(t))) { const d = +m[1], mo = +m[2], y = +m[3]; if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) out.push({ i: m.index, iso: isoD(y, mo, d), y, mo, d }); }
+  MONTHS_RE.forEach(([ru, kz], k) => {
+    const re2 = new RegExp(`(\\d{1,2})\\s*[«"]?\\s*(?:${ru})\\S*\\s+(20\\d{2})`, "g"), re3 = new RegExp(`(20\\d{2})\\s*(?:ж\\.?|жыл\\S*)?\\s*(\\d{1,2})\\s*(?:${kz})`, "g");
+    while ((m = re2.exec(t))) out.push({ i: m.index, iso: isoD(+m[2], k + 1, +m[1]), y: +m[2], mo: k + 1, d: +m[1] });
+    while ((m = re3.exec(t))) out.push({ i: m.index, iso: isoD(+m[1], k + 1, +m[2]), y: +m[1], mo: k + 1, d: +m[2] });
+  });
+  return out.sort((a, b) => a.i - b.i);
+}
+// → { date, months, how } или null
+function detectPeriod(sheets, kind) {
+  const t = headText(sheets), ds = findDates(t);
+  const near = (re, after = 40) => { let m; const r = new RegExp(re, "g"); while ((m = r.exec(t))) { const d = ds.find(x => x.i >= m.index && x.i - m.index <= after + m[0].length); if (d) return d; } return null; };
+  // за период с … по …
+  let m = /(?:период\S*|с)\s+(\d{1,2}[.\/]\d{1,2}[.\/]20\d{2}|\d{1,2}\s*\S+\s+20\d{2})\s*(?:г\.?|года)?\s*(?:по|-|–|—)\s*(\d{1,2}[.\/]\d{1,2}[.\/]20\d{2}|\d{1,2}\s*\S+\s+20\d{2})/.exec(t);
+  if (m) { const a = findDates(m[1])[0], b = findDates(m[2])[0]; if (a && b && b.iso >= a.iso) return { date: isoD(b.y, b.mo, lastDay(b.y, b.mo)), months: Math.min(12, (b.y - a.y) * 12 + b.mo - a.mo + 1), how: `«с ${a.d}.${a.mo}.${a.y} по ${b.d}.${b.mo}.${b.y}»` }; }
+  // за N месяцев / квартал / полугодие YYYY
+  m = /за\s+(\d{1,2})\s*(?:месяц|мес\.?|ай)\S*\s+(?:\S+\s+){0,2}?(20\d{2})/.exec(t);
+  if (m && +m[1] >= 1 && +m[1] <= 12) return { date: isoD(+m[2], +m[1], lastDay(+m[2], +m[1])), months: +m[1], how: `«за ${m[1]} месяцев ${m[2]}»` };
+  m = /(?:за\s+)?([1-4])\s*-?\s*(?:й|ый|ой|ий)?\s*квартал\S*\s+(?:\S+\s+){0,2}?(20\d{2})/.exec(t);
+  if (m) return { date: isoD(+m[2], +m[1] * 3, lastDay(+m[2], +m[1] * 3)), months: +m[1] * 3, how: `«${m[1]} квартал ${m[2]}»` };
+  m = /(?:за\s+)?(?:[1i]\s*-?\s*(?:е|ое)?\s*)?полугоди\S*\s+(?:\S+\s+){0,2}?(20\d{2})/.exec(t);
+  if (m) return { date: isoD(+m[1], 6, 30), months: 6, how: `«полугодие ${m[1]}»` };
+  // на дату / по состоянию на
+  const dn = near("(?:по\\s+состоянию\\s+)?на\\s|жағдай|состоянию|отчетн\\S*\\s+дат", 30);
+  if (dn) { const eom = dn.d === lastDay(dn.y, dn.mo); return { date: eom ? dn.iso : isoD(dn.y, dn.mo, lastDay(dn.y, dn.mo)), months: kind === "B" ? (dn.mo === 12 ? 12 : dn.mo) : (dn.mo === 12 ? 12 : dn.mo), how: `«на ${dn.d}.${String(dn.mo).padStart(2, "0")}.${dn.y}»` }; }
+  // за YYYY год
+  m = /(?:за|по\s+итогам)\s+(20\d{2})\s*(?:г\.?|год|года|жыл)/.exec(t) || /(20\d{2})\s*(?:жылғы|жыл)\s+/.exec(t);
+  if (m) return { date: isoD(+m[1], 12, 31), months: 12, how: `«за ${m[1]} год»` };
+  // любая дата конца месяца в шапке
+  const eomAny = ds.filter(x => x.d === lastDay(x.y, x.mo));
+  if (eomAny.length) { const x = eomAny[0]; return { date: x.iso, months: x.mo === 12 ? 12 : x.mo, how: `дата в шапке ${x.d}.${String(x.mo).padStart(2, "0")}.${x.y}` }; }
+  return null;
+}
+const MAX_PER = 4;
+// найти период с этой датой или создать новый (по порядку дат)
+function periodFor(date, months, kind) {
+  let p = X.per.find(x => x.date === date);
+  if (p) { if (kind !== "B" && isNum(months) && !isNum(fv("rev", p.id))) p.months = months; return { p, created: false }; }
+  if (X.per.length >= MAX_PER) {
+    const empty = X.per.find(x => !Object.keys(X.fin).some(k => isNum(X.fin[k][x.id])));
+    if (!empty) return { p: null };
+    X.per = X.per.filter(x => x !== empty);
+  }
+  p = { id: uid(), date, months: isNum(months) ? months : (+date.slice(5, 7) === 12 ? 12 : +date.slice(5, 7)) };
+  X.per.push(p); X.per.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  return { p, created: true };
+}
 const FINKEYS_DECL = ["rev", "vat_turn", "vat_ex", "fot", "cit"];
 /* один файл: финансовая отчётность (баланс/ОПиУ/ДДС) или налоговая декларация — определяется само */
 async function importFile(file, pid, units, onProg) {
@@ -213,9 +275,9 @@ async function importFile(file, pid, units, onProg) {
     lastKind = kind;
     const f = parseForm(sh, kind);
     const same = parsed.find(p => p.kind === kind);
-    if (same) { if (!f.err) mergeForms(same.f, f); continue; }
+    if (same) { if (!f.err) { mergeForms(same.f, f); same.sheets.push(sh); } continue; }
     if (f.err) continue;
-    used.push(sh); parsed.push({ kind, f });
+    used.push(sh); parsed.push({ kind, f, sheets: [sh] });
   }
   if (!parsed.length && !dres && !r.pdf) {
     try { const d = DocParse.readSheets(r.sheets); if (d.kind === "decl") dres = d; } catch (e) { /* не декларация */ }
@@ -228,13 +290,27 @@ async function importFile(file, pid, units, onProg) {
   let factor, why;
   if (units && units !== "auto") { factor = { t: 0.001, k: 1, m: 1000 }[units]; why = "как указано при загрузке"; }
   else [factor, why] = autoFactor(mx, unitHints(used));
-  const i = perIdx(pid), prev = i > 0 ? X.per[i - 1] : null, cur = X.per[i];
-  const rep = [];
-  for (const { kind, f } of parsed) {
+  const rep = []; let lastCur = null;
+  // период формы: по дате в шапке; у соседних форм файла (без своей даты) — тот же; если указан вручную — он
+  const det = parsed.map(x => pid ? null : detectPeriod(x.sheets, x.kind));
+  const common = pid ? null : (det.find(Boolean) || detectPeriod(r.sheets, "P"));
+  if (!pid && !common) return [{ ask: true, txt: `${parsed.map(x => KIND_TXT[x.kind]).join(" и ")}: в документе не нашёл отчётную дату. В какой период загрузить?` }];
+  for (let j = 0; j < parsed.length; j++) {
+    const { kind, f } = parsed[j], dp = det[j] || (common ? { ...common, how: common.how + " (из этого же файла)" } : null);
+    let cur, prev = null, how;
+    if (dp) {
+      const r1 = periodFor(dp.date, dp.months, kind); cur = r1.p; how = `период — по документу: ${dp.how}${r1.created ? ", период добавлен" : ""}`;
+      if (!cur) { rep.push({ err: `${KIND_TXT[kind]}: в документе период ${dp.how}, но периодов уже ${MAX_PER} и все заполнены — удалите лишний период и загрузите снова` }); continue; }
+      // колонка «на начало» (баланс) / «за предыдущий год» (годовая ОПиУ, ДДС) — конец прошлого года
+      const y = +cur.date.slice(0, 4) - 1;
+      if (f.hasPrev && (kind === "B" || N(cur.months) === 12)) { const r2 = periodFor(`${y}-12-31`, 12, kind); prev = r2.p; }
+    } else {
+      cur = X.per[perIdx(pid)]; how = "период выбран вручную";
+      const i = perIdx(cur.id); prev = i > 0 && kind === "B" ? X.per[i - 1] : null;
+    }
+    lastCur = cur;
     const prof = chooseProfile(f, kind);
-    const cols = [[0, cur]];
-    // вторая колонка (прошлый период): баланс — всегда; ОПиУ/ДДС — только если оба периода годовые
-    if (f.hasPrev && prev && (kind === "B" || (N(cur.months) === 12 && N(prev.months) === 12))) cols.push([1, prev]);
+    const cols = [[0, cur]]; if (prev && f.hasPrev) cols.push([1, prev]);
     let n = 0, nPrev = 0;
     for (const [w, p] of cols) {
       const lines = formToLines(kind, f, prof, w);
@@ -245,9 +321,9 @@ async function importFile(file, pid, units, onProg) {
       }
     }
     const uTxt = factor < 0.5 ? "в файле тенге — переведено в тыс. тг" : factor > 2 ? "в файле млн тг — переведено в тыс. тг" : "в файле тыс. тг";
-    rep.push({ ok: true, kind, txt: `${KIND_TXT[kind]}: ${n} строк за ${perLabel(cur)}${nPrev ? `, ${nPrev} — за ${perLabel(prev)}` : ""}. ${uTxt} (${why}).${scanNote}` });
+    rep.push({ ok: true, kind, txt: `${KIND_TXT[kind]}: ${n} строк за ${perLabel(cur)}${nPrev ? `, ${nPrev} — за ${perLabel(prev)}` : ""}; ${how}. ${uTxt} (${why}).${scanNote}` });
   }
-  X.files.unshift({ name: file.name, t: Date.now(), what: rep.map(x => KIND_TXT[x.kind]).join(", "), per: perLabel(cur) });
+  if (lastCur) X.files.unshift({ name: file.name, t: Date.now(), what: rep.filter(x => x.kind).map(x => KIND_TXT[x.kind]).join(", "), per: perLabel(lastCur) });
   return rep;
 }
 function addDecl(d, fname) {

@@ -10,7 +10,7 @@ function ask(msg, yes = "Да", no = "Отмена") {
     document.body.appendChild(m); m.querySelector('[data-q="1"]').focus();
   });
 }
-function openClient(c, page = "card") { X = c; PAGE = page; UPL = { pid: null, units: "auto", log: [] }; OD_LOG = []; OD_SHOW = "ex"; OD_OPEN = false; renderClient(); window.scrollTo(0, 0); }
+function openClient(c, page = "card") { X = c; PAGE = page; UPL = { pid: null, units: "auto", log: [], files: {} }; OD_LOG = []; OD_SHOW = "ex"; OD_OPEN = false; renderClient(); window.scrollTo(0, 0); }
 
 function onChange(el) {
   const k = el.dataset.k; if (!k) return false;
@@ -50,16 +50,16 @@ async function handleStmts(files) {
 }
 async function handleFiles(files) {
   if (!files || !files.length) return;
-  const pid = UPL.pid || X.per[X.per.length - 1].id;
   toast("Читаю файлы…");
   for (const f of files) {
     let rep;
-    try { rep = await importFile(f, pid, UPL.units); } catch (e) { rep = [{ err: "ошибка разбора: " + e.message }]; }
+    UPL.files = UPL.files || {}; UPL.files[f.name] = f;
+    try { rep = await importFile(f, null, UPL.units, (i, n) => toast(`Распознаю скан «${f.name}»: страница ${i} из ${n}…`)); } catch (e) { rep = [{ err: "ошибка разбора: " + e.message }]; }
     for (const r of rep) UPL.log.unshift({ file: f.name, ...r });
   }
   UPL.log = UPL.log.slice(0, 12);
   touch(); saveAll(true); rerender();
-  toast("Готово — проверьте цифры в таблицах");
+  toast(UPL.log.some(r => r.ask) ? "Для документа без даты выберите период" : "Готово — проверьте цифры в таблицах");
 }
 
 document.addEventListener("click", async e => {
@@ -72,6 +72,13 @@ document.addEventListener("click", async e => {
   if (d.add) { const arr = X.card[d.add] = X.card[d.add] || []; arr.push(d.add === "loans" ? { bank: "", kind: "Кредит", balance: null, pay: null, end: "", overdue: "no", refin: false } : d.add === "coll" ? { type: "Недвижимость коммерческая", desc: "", owner: "", value: null, disc: COLL["Недвижимость коммерческая"] } : { name: "", type: "Физическое лицо", rel: "", note: "" }); touch(); rerender(); return; }
   if (d.rm) { const [arr, i] = d.rm.split("."); X.card[arr].splice(+i, 1); touch(); rerender(); return; }
   if (d.rmper !== undefined) { const i = +d.rmper, p = X.per[i]; if (!(await ask(`Удалить период «${perLabel(p)}» и все его цифры?`, "Удалить"))) return; for (const k of Object.keys(X.fin)) delete X.fin[k][p.id]; X.per.splice(i, 1); touch(); rerender(); return; }
+  if (d.loadto) {
+    const [li, pid] = d.loadto.split("|"), r = UPL.log[+li], f = r && UPL.files && UPL.files[r.file]; if (!f) return;
+    toast("Загружаю…");
+    let rep; try { rep = await importFile(f, pid, UPL.units); } catch (e) { rep = [{ err: "ошибка разбора: " + e.message }]; }
+    UPL.log.splice(+li, 1, ...rep.map(x => ({ file: f.name, ...x })));
+    touch(); saveAll(true); rerender(); return;
+  }
   if (d.rmst !== undefined) { if (!(await ask("Удалить выписку из расчёта?", "Удалить"))) return; odCfg().st.splice(+d.rmst, 1); touch(); rerender(); return; }
   if (d.odshow) { OD_SHOW = d.odshow; OD_OPEN = true; rerender(); return; }
   if (d.rmdecl !== undefined) { X.decl.splice(+d.rmdecl, 1); touch(); rerender(); return; }
@@ -81,7 +88,7 @@ document.addEventListener("click", async e => {
     case "openfile": $("#ofile").click(); break;
     case "home": saveAll(true); renderHome(); window.scrollTo(0, 0); break;
     case "save": download(`Экспресс_${(X.card.name || "клиент").replace(/[^\wА-Яа-яЁёӘәҒғҚқҢңӨөҰұҮүҺһІі -]+/g, "").trim() || "клиент"}_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: "finkz-express", v: 1, client: X }, null, 1)); toast("Файл сохранён в «Загрузки»"); break;
-    case "addper": { const last = X.per[X.per.length - 1], y = last && last.date ? +last.date.slice(0, 4) + 1 : new Date().getFullYear(); X.per.push({ id: uid(), date: `${y}-${N(last?.months) === 12 ? "09-30" : "12-31"}`, months: N(last?.months) === 12 ? 9 : 12 }); touch(); rerender(); break; }
+    case "addper": { if (X.per.length >= MAX_PER) break; const last = X.per[X.per.length - 1], y = last && last.date ? +last.date.slice(0, 4) + 1 : new Date().getFullYear(); X.per.push({ id: uid(), date: `${y}-${N(last?.months) === 12 ? "09-30" : "12-31"}`, months: N(last?.months) === 12 ? 9 : 12 }); touch(); rerender(); break; }
     case "pick": $("#ufile").click(); break;
     case "pickst": $("#stfile").click(); break;
     case "adddecl": X.decl.push({ id: uid(), file: "", form: "100", formName: "КПН (ф. 100.00)", year: new Date().getFullYear() - 1, part: "Y", vals: {} }); touch(); rerender(); break;
