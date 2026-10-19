@@ -376,3 +376,8 @@ html[data-device="phone"] #toast { bottom: calc(84px + env(safe-area-inset-botto
 .mfoot .btn { padding-left: 0; }
 .mfoot .copy { width: 100%; color: var(--graphite); }
 @media print { .tabbar, .mfoot { display: none !important; } }
+
+/* подзаголовок в одну строку (компьютер, планшет в альбомной ориентации) */
+.pagehead p.one { max-width: none; }
+html[data-device="desktop"] .pagehead .lead:has(p.one) { flex: 1 1 auto; }
+html[data-device="desktop"] .pagehead p.one { white-space: nowrap; }

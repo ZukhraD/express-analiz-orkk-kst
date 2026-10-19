@@ -238,7 +238,7 @@ function pageAn(pr, v) {
     kpi(!isNum(m.eqr) ? "nd" : N(m.eq) < 0 ? "crit" : sevBy(m.eqr, NORM.eq_ok, NORM.eq_min), "Собственные средства", isNum(m.eqr) ? fmt(m.eqr, "p") : "—", "", "Какая часть имущества компании принадлежит ей самой, а не куплена в долг. Норма — от 20 %.", isNum(m.eq) ? `Капитал: ${T(m.eq)} тыс. тг` : ""),
   ];
   const keyRows = [["Выручка", p => fv("rev", p.id)], ["Чистая прибыль", p => val("ni", p.id)], ["EBITDA (заработок до процентов и налогов)", p => val("ebitda", p.id)], ["Активы", p => val("ta", p.id)], ["Собственный капитал", p => fv("eq", p.id)], ["Кредиты и займы", p => val("debt", p.id)], ["Дебиторская задолженность", p => fv("ar", p.id)], ["Запасы", p => fv("inv", p.id)]];
-  return `<div class="pagehead"><div class="lead"><h1>Анализ</h1><p>Короткая картина: самое главное о бизнесе клиента. Цвет плашки: зелёный — норма, жёлтый — проверить, красный — риск.</p></div></div>
+  return `<div class="pagehead"><div class="lead"><h1>Анализ</h1><p class="one">Самое главное о бизнесе клиента. Цвет плашки: зелёный — норма, жёлтый — проверить, красный — риск.</p></div></div>
   <div class="verdict ${v.sev}"><div class="vicon">${v.icon}</div><div><div class="big">${esc(v.title)}</div><p>${esc(v.text)}</p></div></div>
   <div class="kpis">${k.join("")}</div>
   ${isOD(c) ? odAnPanel() : `<section class="panel"><h2>Сколько можно дать</h2><p class="hint">Расчёт по текущему заработку бизнеса и платежам по действующим кредитам, с запасом ${Math.round((NORM.dscr_ok - 1) * 100)} % на непредвиденное — при тех же сроке, ставке и способе погашения.</p>
@@ -275,7 +275,7 @@ function odAnPanel() {
 /* ---------------------------------------------------------------- 5. Заключение: готовый документ, без редактирования */
 function pageConcl(pr, v) {
   const doc = buildConclusion(pr, v);
-  return `<div class="pagehead"><div class="lead"><h1>Заключение</h1><p>Готовое заключение по всем данным клиента. Оно обновляется само, когда вы меняете цифры.</p></div>
+  return `<div class="pagehead"><div class="lead"><h1>Заключение</h1><p class="one">Готовое заключение по всем данным клиента. Оно обновляется само, когда вы меняете цифры.</p></div>
     <div class="row noprint actions">${navigator.share ? `<button class="btn" data-act="share">Поделиться</button>` : ""}<button class="btn" data-act="copy">Копировать текст</button><button class="btn primary" data-act="print">Печать / PDF</button></div></div>
   <article class="doc">${docHtml(doc)}</article>`;
 }
