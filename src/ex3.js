@@ -98,14 +98,15 @@ function pageCard() {
       ${fld("Клиент", `<input class="inp" data-k="c.name" value="${esc(c.name || "")}" placeholder="ТОО «…» / ИП …">`, "wide")}
       ${fld("Продукт", csel("product", PRODUCTS))}
       ${fld("Цель", csel("purpose", PURPOSES))}
-      ${od ? fld("Срок транша", `<select class="inp" data-k="od.tranche">${opts([["30", "до 30 дней"], ["90", "до 90 дней"]], String(odCfg().tranche))}</select>`) : fld("Погашение", csel("sched", Object.entries(SCHED)))}
+      ${od ? fld("Срок транша", `<select class="inp" data-k="od.tranche">${opts([["30", "до 30 дней"], ["90", "до 90 дней"]], String(odCfg().tranche))}</select>`) : isWC(c) ? fld("Платёжная нагрузка", `<div class="calcbox">только проценты</div>`) : fld("Погашение", csel("sched", Object.entries(SCHED)))}
       ${fld(od ? "Сумма (лимит), тыс. тг" : "Сумма займа, тыс. тг", cnum("amount"))}
       ${fld(od ? "Срок кредитной линии, мес." : "Срок, мес.", cnum("term"))}
       ${fld("Ставка, % годовых", cnum("rate", "например, 19,25"))}
-      ${od ? "" : fld("Льготный период, мес.", cnum("grace", "0"))}
+      ${od || isWC(c) ? "" : fld("Льготный период, мес.", cnum("grace", "0"))}
       ${fld("Взнос по действующим кредитам, тыс. тг/мес.", num(pe, "c.payExist", `placeholder="0 — если кредитов нет"`))}
-      ${od ? "" : `<div class="fld"></div>`}
-      ${fld(od ? "Проценты по овердрафту в месяц" : "Платёж по новому кредиту в месяц", box(lp ? fmt(lp.pay) + " тыс. тг" : "— укажите сумму, срок и ставку", lp ? (od ? "при полном использовании лимита" : lp.note + (N(c.grace) ? `; в льготный период ~${fmt(lp.grace)} тыс. тг` : "")) : ""))}
+      ${od || isWC(c) ? "" : `<div class="fld"></div>`}
+      ${isWC(c) && lp ? fld("Проценты в год", box(fmt(lp.year) + " тыс. тг", "сумма × ставка")) : ""}
+      ${fld(od ? "Проценты по овердрафту в месяц" : isWC(c) ? "Проценты в месяц" : "Платёж по новому кредиту в месяц", box(lp ? fmt(lp.pay) + " тыс. тг" : "— укажите сумму, срок и ставку", lp ? (od ? "при полном использовании лимита" : lp.wc ? "пополнение оборотных средств — в нагрузке только проценты" : lp.note + (N(c.grace) ? `; в льготный период ~${fmt(lp.grace)} тыс. тг` : "")) : ""))}
       ${fld("Все платежи в месяц", box(lp || N(pe) ? fmt(N(pe) + (lp ? lp.pay : 0)) + " тыс. тг" : "—", "действующие + новый"))}
       ${od ? fld("Расчётный лимит овердрафта", box(fmt(odCalc().limit) + " тыс. тг", "см. расчёт ниже")) : ""}
     </div></section>
@@ -303,7 +304,7 @@ function buildConclusion(pr, v) {
   D.push({ v });
   H("1. Запрос клиента");
   P(`${c.product || "Кредит"} на сумму ${t(c.amount)}, срок ${isOD(c) ? "кредитной линии " : ""}${c.term || "—"} мес., ставка ${isNum(c.rate) ? fmt(c.rate, "d2") + " %" : "—"}. Цель — ${(c.purpose || "").toLowerCase()}.`);
-  if (m.newPay) P(isOD(c) ? `Проценты при полном использовании лимита — около ${t(m.newPay.pay)} в месяц.` : `Ежемесячный платёж по новому кредиту — около ${t(m.newPay.pay)} (${m.newPay.note}).`);
+  if (m.newPay) P(isOD(c) ? `Проценты при полном использовании лимита — около ${t(m.newPay.pay)} в месяц.` : m.newPay.wc ? `Цель — пополнение оборотных средств, поэтому в платёжную нагрузку включены только проценты: ${t(m.newPay.year)} в год (около ${t(m.newPay.pay)} в месяц).` : `Ежемесячный платёж по новому кредиту — около ${t(m.newPay.pay)} (${m.newPay.note}).`);
   H("2. Финансовое положение");
   if (m.pl) {
     P(`Выручка за ${perLabel(m.pl)} — ${t(fv("rev", m.pl.id))}${m.k !== 1 ? ` (в пересчёте на год около ${t(m.rev)})` : ""}${isNum(m.revGr) ? `; ${m.revGr >= 0 ? "рост" : "снижение"} на ${fmt(Math.abs(m.revGr), "p")} к прошлому году` : ""}.`);
