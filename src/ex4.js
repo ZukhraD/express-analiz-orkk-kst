@@ -1,6 +1,6 @@
 "use strict";
 /* ================================================================ Экспресс-анализ: события, пример, запуск */
-const NUMF = new Set(["amount", "term", "rate", "grace", "guarPct", "balance", "pay", "value", "disc", "months", "year", "rev", "vat_turn"]);
+const NUMF = new Set(["payExist", "amount", "term", "rate", "grace", "guarPct", "balance", "pay", "value", "disc", "months", "year", "rev", "vat_turn"]);
 // подтверждение внутри страницы (системные окна в некоторых браузерах и превью заблокированы)
 function ask(msg, yes = "Да", no = "Отмена") {
   return new Promise(res => {
@@ -31,7 +31,6 @@ function onChange(el) {
     else if (f === "year") d.year = nval();
     else { d[f] = raw; if (f === "form") d.formName = { "100": "КПН (ф. 100.00)", "910": "Упрощённая декларация (ф. 910.00)", "300": "НДС (ф. 300.00)", "200": "ИПН и социальный налог (ф. 200.00)", "220": "ИПН (ф. 220.00)" }[raw] || raw; }
   }
-  else if (k === "concl") { return true; }
   touch(); return true;
 }
 async function handleFiles(files) {
@@ -68,8 +67,7 @@ document.addEventListener("click", async e => {
     case "addper": { const last = X.per[X.per.length - 1], y = last && last.date ? +last.date.slice(0, 4) + 1 : new Date().getFullYear(); X.per.push({ id: uid(), date: `${y}-${N(last?.months) === 12 ? "09-30" : "12-31"}`, months: N(last?.months) === 12 ? 9 : 12 }); touch(); rerender(); break; }
     case "pick": $("#ufile").click(); break;
     case "adddecl": X.decl.push({ id: uid(), file: "", form: "100", formName: "КПН (ф. 100.00)", year: new Date().getFullYear() - 1, part: "Y", vals: {} }); touch(); rerender(); break;
-    case "regen": if (!X.concl.edited || await ask("Заменить ваш текст автоматическим?", "Заменить")) { X.concl = { text: "", edited: false }; saveAll(); rerender(); } break;
-    case "copy": try { await navigator.clipboard.writeText(X.concl.text); toast("Текст скопирован"); } catch (err) { $("#concl").select(); document.execCommand("copy"); toast("Текст скопирован"); } break;
+    case "copy": { const txt = docText(buildConclusion(problems(), verdict(problems()))); try { await navigator.clipboard.writeText(txt); toast("Текст заключения скопирован"); } catch (err) { const r = document.createRange(); r.selectNodeContents($(".doc")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Текст выделен — нажмите Ctrl+C"); } break; }
     case "print": window.print(); break;
   }
 });
@@ -78,7 +76,6 @@ document.addEventListener("change", e => {
   if (el.id === "ofile") { const f = el.files[0]; if (!f) return; f.text().then(txt => { try { const o = JSON.parse(txt), c = o.client || o; if (!c.card || !c.per) throw new Error(); c.id = uid(); c.demo = false; CLIENTS.push(c); saveAll(true); openClient(c); toast("Клиент открыт из файла"); } catch (err) { toast("Это не файл экспресс-анализа"); } }); return; }
   if (el.id === "ufile") { handleFiles([...el.files]); el.value = ""; return; }
   if (el.dataset.upl) { UPL[el.dataset.upl] = el.value; return; }
-  if (el.dataset.k === "concl") return;
   if (onChange(el)) { PENDING = true; if (!PD) setTimeout(flush, 0); }
 });
 function flush() { if (PENDING && X && !PD) { PENDING = false; rerender(); } }
@@ -86,10 +83,6 @@ function flush() { if (PENDING && X && !PD) { PENDING = false; rerender(); } }
 let PD = false, PENDING = false;
 document.addEventListener("pointerdown", () => { PD = true; }, true);
 document.addEventListener("pointerup", () => { PD = false; setTimeout(flush, 0); }, true);
-document.addEventListener("input", e => {
-  const el = e.target;
-  if (el.dataset.k === "concl") { X.concl.text = el.value; X.concl.edited = true; saveAll(); const p = $(".printonly"); if (p) p.textContent = el.value; }
-});
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input.inp")) e.target.blur(); });
 document.addEventListener("focusin", e => { if (e.target.matches("input.num")) { const v = parseNum(e.target.value); if (isNum(v)) e.target.value = String(v).replace(".", ","); e.target.select(); } });
 document.addEventListener("dragover", e => { const d = e.target.closest?.("#drop"); if (d) { e.preventDefault(); d.classList.add("on"); } });
@@ -103,21 +96,9 @@ function demoClient() {
   c.demo = true;
   c.per = [{ id: "p1", date: `${y - 2}-12-31`, months: 12 }, { id: "p2", date: `${y - 1}-12-31`, months: 12 }];
   Object.assign(c.card, {
-    name: "ТОО «Пример-Трейд» (вымышленная компания)", bin: "000000000000", form: "ТОО", regDate: "2016-04-12",
-    activity: "Оптовая торговля строительными материалами", director: "Серікұлы Арман (вымышл.)", owners: "Серікұлы Арман — 100 %", phone: "", km: "",
-    product: "Кредит", purpose: "Пополнение оборотных средств", program: "Собственная программа банка",
-    amount: 40000, term: 36, rate: 19.5, sched: "ann", grace: 0, guarPct: null,
-    notes: "Клиент закупает стройматериалы под весенне-летний сезон. Основные покупатели — строительные компании города. Просит кредит на закупку товара к сезону.",
-    loans: [
-      { bank: "Банк А", kind: "Кредит", balance: 58000, pay: 1450, end: `${y + 3}-06`, overdue: "past", refin: false },
-      { bank: "Лизинговая компания Б", kind: "Лизинг", balance: 22300, pay: 820, end: `${y + 2}-11`, overdue: "no", refin: false },
-      { bank: "Банк В", kind: "Кредитная линия", balance: 15000, pay: 250, end: `${y}-12`, overdue: "no", refin: false },
-    ],
-    coll: [
-      { type: "Недвижимость коммерческая", desc: "Склад 640 м², г. Костанай (пример)", owner: "Серікұлы Арман (учредитель)", value: 55000, disc: 30 },
-      { type: "Транспорт", desc: "Грузовой автомобиль 2019 г.в.", owner: "сам клиент", value: 18000, disc: 40 },
-    ],
-    guar: [{ name: "Серікұлы Арман", type: "Физическое лицо", rel: "учредитель и директор", note: "личное имущество — склад в залоге" }],
+    name: "ТОО «Пример-Трейд» (вымышленная компания)",
+    product: "Кредит", purpose: "Пополнение оборотных средств",
+    amount: 40000, term: 36, rate: 19.5, sched: "ann", grace: 0, payExist: 2520,
   });
   const F = {
     cash: [18400, 22700], ar: [61300, 92400], inv: [88700, 96200], oca: [7900, 8400], fa: [54600, 69260],

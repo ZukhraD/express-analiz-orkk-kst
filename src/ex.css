@@ -233,3 +233,26 @@ input[type="checkbox"] { accent-color: var(--azure); width: 16px; height: 16px; 
   .printonly { display: block !important; white-space: pre-wrap; font-size: 12.5px; line-height: 1.55; }
 }
 .printonly { display: none; }
+
+/* левая панель: подвал */
+.rail .foot { display: flex; flex-direction: column; gap: 12px; }
+.rail .foot .copy { border-top: 1.5px solid var(--platinum); padding-top: 12px; color: var(--graphite); }
+
+/* заключение — готовый документ */
+.doc { background: var(--white); border: 1.5px solid var(--platinum); border-radius: var(--shape); padding: 30px 36px; max-width: 860px; line-height: 1.6; }
+.doc .dt { font-size: 26px; margin-bottom: 4px; }
+.doc .dmeta { font-family: var(--sys); font-size: 11.5px; color: var(--muted); }
+.doc .dmeta:last-child { margin-top: 22px; padding-top: 12px; border-top: 1px solid var(--rule-soft); }
+.doc h3 { font-size: 17px; margin: 22px 0 8px; color: var(--azure); }
+.doc p { margin: 0 0 8px; }
+.doc ul { margin: 4px 0 10px; padding-left: 20px; }
+.doc li { margin: 6px 0; }
+.doc li .tag { vertical-align: 1px; }
+.dverdict { margin: 18px 0 6px; padding: 16px 20px; border-radius: var(--shape-s); background: var(--platinum); }
+.dverdict span { display: block; font-family: var(--sys); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; opacity: .75; }
+.dverdict b { display: block; font-family: var(--head); font-weight: 500; font-size: 21px; margin: 2px 0 4px; }
+.dverdict p { margin: 0; }
+.dverdict.ok { background: var(--lime); color: var(--graphite); } .dverdict.chk { background: #FFE9A8; } .dverdict.risk { background: #FFD0BA; }
+.dverdict.crit { background: var(--crit); color: #fff; }
+@media (max-width: 860px) { .doc { padding: 20px 18px; } }
+@media print { .doc { border: 0; padding: 0; max-width: none; } .dverdict, .tag { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }

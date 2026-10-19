@@ -237,6 +237,29 @@ input[type="checkbox"] { accent-color: var(--azure); width: 16px; height: 16px; 
   .printonly { display: block !important; white-space: pre-wrap; font-size: 12.5px; line-height: 1.55; }
 }
 .printonly { display: none; }
+
+/* левая панель: подвал */
+.rail .foot { display: flex; flex-direction: column; gap: 12px; }
+.rail .foot .copy { border-top: 1.5px solid var(--platinum); padding-top: 12px; color: var(--graphite); }
+
+/* заключение — готовый документ */
+.doc { background: var(--white); border: 1.5px solid var(--platinum); border-radius: var(--shape); padding: 30px 36px; max-width: 860px; line-height: 1.6; }
+.doc .dt { font-size: 26px; margin-bottom: 4px; }
+.doc .dmeta { font-family: var(--sys); font-size: 11.5px; color: var(--muted); }
+.doc .dmeta:last-child { margin-top: 22px; padding-top: 12px; border-top: 1px solid var(--rule-soft); }
+.doc h3 { font-size: 17px; margin: 22px 0 8px; color: var(--azure); }
+.doc p { margin: 0 0 8px; }
+.doc ul { margin: 4px 0 10px; padding-left: 20px; }
+.doc li { margin: 6px 0; }
+.doc li .tag { vertical-align: 1px; }
+.dverdict { margin: 18px 0 6px; padding: 16px 20px; border-radius: var(--shape-s); background: var(--platinum); }
+.dverdict span { display: block; font-family: var(--sys); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; opacity: .75; }
+.dverdict b { display: block; font-family: var(--head); font-weight: 500; font-size: 21px; margin: 2px 0 4px; }
+.dverdict p { margin: 0; }
+.dverdict.ok { background: var(--lime); color: var(--graphite); } .dverdict.chk { background: #FFE9A8; } .dverdict.risk { background: #FFD0BA; }
+.dverdict.crit { background: var(--crit); color: #fff; }
+@media (max-width: 860px) { .doc { padding: 20px 18px; } }
+@media print { .doc { border: 0; padding: 0; max-width: none; } .dverdict, .tag { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 </style></head>
 <body><script>window.SPEC = {"mapping":[["B","cash","010","02","Z","","01"],["B","stinv","011,012,013,014,015","03","Z","Краткосрочные финансовые активы","02"],["B","ar","016","04","Z","Торговая (в форме МСБ — вся краткосрочная) дебиторская задолженность","03"],["B","oar","017,018,#авансы выданные,#дебиторская задолженность работников","","Z","ДЗ по аренде, активы по договорам; авансы выданные и ДЗ работников — из расшифровки «в том числе», если она есть",""],["B","inv","020","05","Z","","04"],["B","taxa","019,#налог на добавленную стоимость,#прочие налоги и другие обязательные платежи","06","Z","Текущий подоходный налог; НДС и прочие налоги — из расшифровки «в том числе»",""],["B","oca","021,022,101,-#авансы выданные,-#дебиторская задолженность работников,-#налог на добавленную стоимость,-#прочие налоги и другие обязательные платежи","07,08","Z","Биоактивы, прочие КА, активы для продажи — за вычетом статей расшифровки, перенесённых выше",""],["B","ppe","121,122","15","Z","Основные средства и актив в форме права пользования","07"],["B","intang","125","18","Z","","08"],["B","ltinv","110,111,112,113,114,115,116","10,12,13","Z","Долгосрочные финансовые активы и инвестиции","05"],["B","olta","117,118,119,120,123,124,126,127","11,14,16,17,19,20","Z","Долгосрочная ДЗ, инвестиционное имущество, биоактивы, ОНА, прочие","06,09"],["B","ta_rep","100,101,200","21","B","Итог активов (контроль)","10"],["B","stloan","210","24","Z","Краткосрочные финансовые обязательства по амортизированной стоимости (займы)","11"],["B","cpltd","218","","Z","Краткосрочная задолженность по аренде (учитывается как долг)",""],["B","ap","214","27","Z","Торговая и прочая кредиторская задолженность","15"],["B","adv","219,#авансы полученные","","Z","Обязательства по договорам с покупателями + авансы полученные из расшифровки",""],["B","taxl","216,#обязательства по налогам","25","Z","Подоходный налог + налоги из расшифровки «в том числе»","12"],["B","ocl","211,212,213,215,217,220,221,222,301,-#авансы полученные,-#обязательства по налогам","26,28,29","Z","Прочие КО, вознаграждения работникам, дивиденды — за вычетом статей расшифровки, перенесённых выше",""],["B","cl_rep","300,301","23","B","Итог КО (контроль)",""],["B","ltloan","310","31","Z","Долгосрочные финансовые обязательства (займы)","13"],["B","lease","318","","Z","Долгосрочная задолженность по аренде",""],["B","oltl","311,312,313,314,315,316,317,319,320,321","32,33,34,35","Z","","14"],["B","ltl_rep","400","30","B","Итог ДО (контроль)",""],["B","sc","410","37","Z","","17"],["B","re","414","42","Z","","19"],["B","oeq","411,412,413,415,421","38,39,40,41,43","Z","Эмиссионный доход, выкупленные акции, резервы, неоплаченный капитал, доля неконтролирующих","18,20"],["B","eq_rep","500","36","B","Итог капитала (контроль)","21"],["P","rev","010","010","Z","","01"],["P","cogs","*011","*020","Z","* — по модулю: расходы в форме могут быть и со знаком «−», и без","*05"],["P","selling","*013","*060","Z","",""],["P","admin","*014","*070","Z","","*06,*07"],["P","ooi","016","","Z","","03"],["P","ooe","*015","","Z","","*09"],["P","fin_inc","021","040","Z","","02"],["P","int","*022","*080","Z","Финансовые расходы (включают % по аренде)","*08"],["P","onoi_in","023,024","050,100","Z","Доля в прибыли ассоциированных + прочие неоперационные доходы",""],["P","onoi_out","*025","*090","Z","Прочие неоперационные расходы (по модулю)",""],["P","cit","100,!200","130,!150","Z","КПН = прибыль до налога − прибыль после налога: знак строки налога не важен","*12"],["P","ni_rep","200","150,!120","B","Прибыль от продолжающейся деятельности (контроль)","13"],["P","da","","","B","Нет в ф.2 — ввести вручную (расшифровка / ф.3 косвенным методом)","*07"],["P","nonrec","","","B","Вручную",""],["P","div","","","B","Вручную (отчёт об изменениях в капитале / решения участников)",""],["P","fot","","","B","Вручную (расшифровка)",""],["C","cf011","011","11,12","Z","","11,12"],["C","cf012","012","","Z","",""],["C","cf013","013","13","Z","","13"],["C","cf014","014","","Z","",""],["C","cf015","015","14","Z","","14"],["C","cf016","016","15","Z","","15"],["C","cf021","*021","*21","Z","","*21"],["C","cf022","*022","*22","Z","","*22"],["C","cf023","*023","*23","Z","","*23"],["C","cf024","*024","*24","Z","","*24"],["C","cf025","*025","","Z","",""],["C","cf026","*026","*25,*26","Z","","*25,*26"],["C","cf027","*027","*27","Z","","*27"],["C","cf041","041","41","Z","","41"],["C","cf042","042","42","Z","","42"],["C","cf043","043","43","Z","","43"],["C","cf044","044","44","Z","","44"],["C","cf045","045","","Z","",""],["C","cf046","046","","Z","",""],["C","cf047","047","45","Z","","45"],["C","cf048","048","46","Z","","46"],["C","cf049","049","","Z","",""],["C","cf050","050","","Z","",""],["C","cf051","051","47","Z","","47"],["C","cf061","*061","*51","Z","","*51"],["C","cf062","*062","*52","Z","","*52"],["C","cf063","*063","*53","Z","","*53"],["C","cf064","*064","","Z","",""],["C","cf065","*065","","Z","",""],["C","cf066","*066","","Z","",""],["C","cf067","*067","","Z","",""],["C","cf068","*068","","Z","",""],["C","cf069","*069","*54","Z","","*54"],["C","cf070","*070","*55","Z","","*55"],["C","cf071","*071","*56","Z","","*56"],["C","cf072","*072","","Z","",""],["C","cf073","*073","*57","Z","","*57"],["C","cf091","091","71","Z","","71"],["C","cf092","092","72","Z","","72"],["C","cf093","093","73","Z","","73"],["C","cf094","094","74","Z","","74"],["C","cf101","*101","*81","Z","","*81"],["C","cf102","*102","","Z","",""],["C","cf103","*103","*83","Z","","*83"],["C","cf104","*104","*82","Z","","*82"],["C","cf105","*105","*84","Z","","*84"],["C","cf120","120","","Z","",""],["C","cf140","140","110","B","","110"],["C","cf150r","150","120","B","","120"]],"signs":[["B","денежные","010","02","01"],["B","запасы","020","05","04"],["B","основные средства","121","15","07"],["B","кредиторская","214","27",""],["B","нераспределенная","414","42","19"],["B","уставный","410","37","17"],["P","себестоимость","011","020",""],["P","реализаци","013","060","01"],["P","административные","014","070",""],["P","расход","022","080","08"],["C","приобретение основных","061","51","51"],["C","получение займов","092","72","72"],["C","погашение займов","101","81","81"],["C","на конец","150","120","120"],["C","на начало","140","110","110"]],"kw":{"B":"бухгалтерский баланс;финансовом положении;балансовый отчет;statement of financial position;balance sheet","P":"прибылях и убытках;прибыли и убытке;совокупном доходе;доходах и расходах;прибыли или убытке;profit or loss;income statement;comprehensive income","C":"движении денежных средств;движения денежных средств;денежных потоках;cash flows","X":"изменениях в капитале;изменения в капитале;changes in equity;пояснительная записка","skipcol":"прим"}};</script>
 <script>"use strict";
@@ -350,9 +373,7 @@ function defPeriods() {
 function newClient() {
   return {
     id: uid(), created: Date.now(), updated: Date.now(),
-    card: { name: "", bin: "", form: "ТОО", regDate: "", activity: "", director: "", owners: "", km: "", phone: "",
-      product: "Кредит", purpose: PURPOSES[0], program: PROGRAMS[0], amount: null, term: null, rate: null, sched: "ann", grace: 0, guarPct: null, notes: "",
-      loans: [], coll: [], guar: [] },
+    card: { name: "", product: "Кредит", purpose: PURPOSES[0], amount: null, term: null, rate: null, sched: "ann", grace: 0, payExist: null },
     per: defPeriods(), fin: {}, files: [], decl: [], concl: { text: "", edited: false },
   };
 }
@@ -2069,9 +2090,7 @@ const NORM = {
   lev_ok: 3.5, lev_max: 5,                 // долг / EBITDA (с новым кредитом)
   liq_ok: 1.0, liq_min: 0.7,               // текущая ликвидность
   eq_ok: 0.2, eq_min: 0.1,                 // доля собственного капитала
-  coll_ok: 1.0, coll_min: 0.7,             // покрытие залогом (с гарантией фонда)
   rev_drop_chk: -0.1, rev_drop_risk: -0.2, // падение выручки
-  age_min: 12,                             // минимальный срок деятельности, мес.
   wc_term: 36,                             // макс. срок для пополнения оборотных средств, мес.
   wc_share: 0.5,                           // сумма кредита к годовой выручке — проверить, если больше
   diff_pct: 0.1, diff_abs: 1000,           // расхождение: больше 10 % и больше 1 000 тыс. тг
@@ -2129,10 +2148,8 @@ function analyze() {
     m.liq = m.cl ? m.ca / m.cl : null; m.eqr = m.ta ? N(m.eq) / m.ta : null;
   }
   // кредиты
-  const loans = c.loans || [];
-  m.loanBal = sum(loans.map(l => l.balance));
-  m.payExist = sum(loans.filter(l => !l.refin).map(l => l.pay));
-  m.refinBal = sum(loans.filter(l => l.refin).map(l => l.balance));
+  m.payKnown = isNum(c.payExist) || (c.loans || []).length > 0;
+  m.payExist = isNum(c.payExist) ? c.payExist : sum((c.loans || []).filter(l => !l.refin).map(l => l.pay));
   m.newPay = loanPay();
   m.payTotal = m.payExist + (m.newPay ? m.newPay.pay : 0);
   if (isNum(m.cashMonth)) {
@@ -2140,15 +2157,8 @@ function analyze() {
     m.payFree = m.cashMonth / NORM.dscr_ok - m.payExist;    // сколько ещё можно платить в месяц с запасом 25 %
     m.maxAmt = Math.max(0, amountForPay(m.payFree));
   }
-  m.debtNew = m.debt + N(c.amount) - m.refinBal;
+  m.debtNew = m.debt + N(c.amount);
   if (isNum(m.ebitda) && m.ebitda > 0) m.lev = m.debtNew / m.ebitda;
-  // залог
-  const coll = c.coll || [];
-  m.collMkt = sum(coll.map(z => z.value));
-  m.collDisc = sum(coll.map(z => N(z.value) * (1 - N(z.disc) / 100)));
-  m.guarAmt = N(c.amount) * N(c.guarPct) / 100;
-  m.coll = N(c.amount) ? (m.collDisc + m.guarAmt) / N(c.amount) : null;
-  m.age = monthsBetween(c.regDate);
   return m;
 }
 
@@ -2163,12 +2173,7 @@ function problems(m = analyze()) {
   if (!m.pl) add("nd", "Отчётность", "Нет данных о выручке и прибыли (ОПиУ)", "Без отчёта о прибылях и убытках нельзя понять, зарабатывает ли бизнес.", "Загрузите ОПиУ или внесите цифры вручную в «Финансовой отчётности».");
   if (!m.bal) add("nd", "Отчётность", "Нет баланса", "Без баланса не видно долгов, собственных средств и имущества компании.", "Загрузите баланс или внесите цифры вручную.");
   // стоп-факторы
-  const overNow = (c.loans || []).filter(l => l.overdue === "now");
-  if (overNow.length) add("crit", "Кредиты", "Текущая просрочка по действующим кредитам", `Клиент сейчас не платит вовремя: ${overNow.map(l => l.bank || "кредитор").join(", ")}. Это прямой признак нехватки денег.`, "Выяснить причину и сумму просрочки; до погашения просрочки заявку дальше не вести.");
-  const overPast = (c.loans || []).filter(l => l.overdue === "past");
-  if (overPast.length) add("chk", "Кредиты", "Были просрочки в прошлом", `По кредитам ${overPast.map(l => l.bank || "кредитор").join(", ")} были просрочки, сейчас погашены.`, "Посмотреть в кредитном отчёте ПКБ: сколько дней и как часто; запросить объяснение у клиента.");
   if (m.bal && isNum(m.eq) && m.eq < 0) add("crit", "Капитал", "Отрицательный собственный капитал", `Долгов у компании больше, чем всего имущества: капитал ${T(m.eq)}. Накопленные убытки «съели» собственные средства.`, "Обычно это стоп-фактор. Уточнить у риск-менеджера, возможно ли финансирование при докапитализации учредителем.");
-  if (m.age !== null && m.age < NORM.age_min) add("risk", "Карточка", `Компания работает меньше ${NORM.age_min} месяцев`, `С даты регистрации прошло ${m.age} мес. Истории бизнеса почти нет, оценивать сложно.`, "Проверить требования программы к сроку деятельности; уточнить опыт учредителя в этом бизнесе.");
   // платёжеспособность
   if (isNum(m.dscr)) {
     if (m.dscr < NORM.dscr_min) add("crit", "Платёжеспособность", "Денег не хватает на платежи по кредитам", `Бизнес зарабатывает ~${T(m.cashMonth)} в месяц, а платить по всем кредитам (вместе с новым) нужно ~${T(m.payTotal)}. Покрытие ${fmt(m.dscr, "x")} — меньше 1.`, m.maxAmt > 0 ? `Снизить сумму до ~${T(Math.floor(m.maxAmt / 100) * 100)} или увеличить срок; проверить, нет ли неучтённых доходов (обороты по счетам).` : "При текущих доходах новый кредит не обслуживается. Проверить обороты по счетам и возможность рефинансирования.");
@@ -2195,12 +2200,6 @@ function problems(m = analyze()) {
     if (m.eqr < NORM.eq_min) add("risk", "Капитал", "Почти всё имущество куплено на заёмные деньги", `Собственный капитал — только ${fmt(m.eqr, "p")} от активов (норма от ${fmt(NORM.eq_ok, "p")}).`, "Уточнить возможность вложений учредителя.");
     else if (m.eqr < NORM.eq_ok) add("chk", "Капитал", "Мало собственного капитала", `Капитал ${fmt(m.eqr, "p")} от активов (норма от ${fmt(NORM.eq_ok, "p")}).`, "Учесть в заключении.");
   }
-  // залог
-  if (N(c.amount) && c.product !== "Овердрафт") {
-    if (!(c.coll || []).length && !N(c.guarPct)) add("chk", "Залог", "Залог не указан", "Нет данных об обеспечении — покрытие посчитать нельзя.", "Внести залог в «Карточку клиента» или указать, что кредит беззалоговый по программе.");
-    else if (m.coll < NORM.coll_min) add("risk", "Залог", "Залога сильно не хватает", `Залог (с дисконтом)${m.guarAmt ? " и гарантия фонда" : ""} покрывают ${fmt(m.coll, "p")} суммы кредита. Не хватает ~${T(N(c.amount) - m.collDisc - m.guarAmt)}.`, "Запросить дополнительный залог, гарантию фонда или снизить сумму.");
-    else if (m.coll < NORM.coll_ok) add("chk", "Залог", "Залог покрывает не всю сумму", `Покрытие ${fmt(m.coll, "p")}. Не хватает ~${T(N(c.amount) - m.collDisc - m.guarAmt)}.`, "Добрать залог или гарантию; уточнить требования программы.");
-  }
   // условия
   if (c.purpose === PURPOSES[0] && N(c.term) > NORM.wc_term) add("chk", "Условия", "Длинный срок для пополнения оборотки", `Срок ${c.term} мес.; для оборотных средств обычно не больше ${NORM.wc_term}.`, "Уточнить срок по программе.");
   if (m.pl && N(c.amount) && c.purpose === PURPOSES[0] && N(c.amount) > m.rev * NORM.wc_share) add("chk", "Условия", "Сумма велика для оборота компании", `Запрашивают ${T(c.amount)} — это ${fmt(N(c.amount) / m.rev, "p")} годовой выручки.`, "Попросить клиента обосновать потребность (контракты, план закупок).");
@@ -2216,9 +2215,9 @@ function problems(m = analyze()) {
     const ni = val("ni", p.id), nr = fv("ni_rep", p.id);
     if (isNum(ni) && isNum(nr) && Math.abs(ni - nr) > Math.max(5, 0.02 * Math.abs(nr))) add("chk", "Расхождения", `Чистая прибыль не совпадает с отчётностью (${L})`, `По строкам ${T(ni)}, в документе ${T(nr)}.`, "Проверить прочие доходы/расходы и налог.");
   }
-  // долг по балансу и по карточке
-  if (m.bal && (c.loans || []).length && big(m.debt, m.loanBal)) add("chk", "Расхождения", "Долги в балансе не совпадают с кредитами клиента", `В балансе кредитов ${T(m.debt)}, а по списку действующих кредитов ${T(m.loanBal)}.`, m.debt > m.loanBal ? "Возможно, есть займы, о которых клиент не сказал (от учредителя, других компаний). Запросить кредитный отчёт ПКБ и расшифровку займов." : "Возможно, кредиты взяты после отчётной даты или оформлены на учредителя. Уточнить у клиента.");
-  if (m.bal && !(c.loans || []).length && m.debt > NORM.diff_abs) add("chk", "Расхождения", "В балансе есть кредиты, а в карточке их нет", `В балансе кредитов и займов на ${T(m.debt)}.`, "Заполнить «Взносы по действующим кредитам» — без них платёжеспособность завышена.");
+  // долг по балансу и взнос по кредитам
+  if (m.bal && !m.payKnown && m.debt > NORM.diff_abs) add("chk", "Платёжеспособность", "Не указан взнос по действующим кредитам", `В балансе кредитов и займов на ${T(m.debt)}, а ежемесячный взнос по ним не указан — платёжеспособность получится завышенной.`, "Узнать у клиента примерную сумму платежей в месяц и внести в «Запрашиваемые условия».");
+  if (m.bal && m.payKnown && m.payExist === 0 && m.debt > NORM.diff_abs) add("chk", "Расхождения", "Кредиты в балансе есть, а взнос указан нулевой", `В балансе кредитов и займов на ${T(m.debt)}.`, "Уточнить у клиента: возможно, это заём учредителя без графика или кредит уже погашен.");
   if (m.pl && m.debt > NORM.diff_abs && !m.int) add("chk", "Расхождения", "Есть кредиты, но нет расходов на проценты", "В балансе есть займы, а в ОПиУ проценты не отражены.", "Уточнить: беспроцентный заём учредителя или ошибка в отчётности.");
   // нераспределённая прибыль vs чистая прибыль
   if (m.yr && m.yr0) {
@@ -2257,7 +2256,7 @@ function verdict(probs) {
   const ess = probs.filter(p => p.sev === "nd" && /ОПиУ|баланса|сумма или срок/.test(p.title));
   if (ess.length) return { sev: "nd", icon: "?", title: "Недостаточно данных для вывода", text: "Заполните недостающее: " + ess.map(p => p.title.toLowerCase()).join("; ") + "." };
   if (has("crit")) return { sev: "crit", icon: "✕", title: "Предварительно не подходит", text: "Есть стоп-фактор(ы). Без их устранения заявку дальше не вести." };
-  if (n("risk") >= 2) return { sev: "risk", icon: "!", title: "Сомнительно — нужна доработка", text: "Несколько серьёзных рисков. Возможна заявка на других условиях (меньше сумма, больше срок, дополнительный залог)." };
+  if (n("risk") >= 2) return { sev: "risk", icon: "!", title: "Сомнительно — нужна доработка", text: "Несколько серьёзных рисков. Возможна заявка на других условиях: меньше сумма, больше срок, дополнительное обеспечение." };
   if (has("risk")) return { sev: "chk", icon: "!", title: "Подходит с условиями", text: "Есть один серьёзный риск — его нужно закрыть до подачи заявки." };
   if (has("chk")) return { sev: "chk", icon: "✓", title: "Предварительно подходит, нужны уточнения", text: "Критичных проблем нет, но есть вопросы, которые надо прояснить с клиентом." };
   return { sev: "ok", icon: "✓", title: "Предварительно подходит", text: "Критичных проблем и расхождений не найдено. Можно собирать полный пакет документов." };
@@ -2283,7 +2282,7 @@ function renderHome() {
     <div class="hero"><h1>Экспресс-анализ для КМ</h1>
       <p>Быстро понять, подходит ли клиент для финансирования, ещё до сбора полного пакета документов. Внесите данные клиента и запрос, загрузите баланс и ОПиУ — сайт сам посчитает показатели, подсветит проблемы и расхождения и напишет заключение простым языком.</p>
       <div class="row"><button class="btn primary big" data-act="new">+ Новый клиент</button><button class="btn alt big" data-act="demo">Пример для заполнения</button><button class="btn alt2 big" data-act="openfile">Открыть файл клиента</button></div></div>
-    <div class="how">${PAGES.map(([, t], i) => `<div><b><em>${i + 1}</em>${t}</b><span>${["данные клиента, запрос, залог, текущие кредиты", "загрузка Excel/PDF или ввод цифр, декларации", "ключевые показатели и сколько можно дать", "что не так и что уточнить у клиента", "итог для руководителя — можно править и печатать"][i]}</span></div>`).join("")}</div>
+    <div class="how">${PAGES.map(([, t], i) => `<div><b><em>${i + 1}</em>${t}</b><span>${["запрос клиента и взнос по действующим кредитам", "загрузка Excel/PDF или ввод цифр, декларации", "ключевые показатели и сколько можно дать", "что не так и что уточнить у клиента", "готовый итог — скопировать или распечатать"][i]}</span></div>`).join("")}</div>
     <h2 style="margin-bottom:10px">Клиенты</h2>
     ${list.length ? `<div class="clist">${list.map(c => { const v = clientVerdict(c); return `<div class="citem" data-open="${c.id}"><div class="nm"><b>${esc(c.card.name || "Без названия")}${c.demo ? ' <span class="tag nd">пример</span>' : ""}</b><span class="small muted">${esc([c.card.bin, c.card.product, isNum(c.card.amount) ? fmt(c.card.amount) + " тыс. тг" : ""].filter(Boolean).join(" · "))} · изменён ${new Date(c.updated).toLocaleDateString("ru-RU")}</span></div><span class="tag ${v.sev}">${esc(v.title)}</span><button class="xbtn" title="Удалить" data-del="${c.id}">×</button></div>`; }).join("")}</div>`
       : `<div class="empty">Пока нет клиентов. Нажмите «Новый клиент» или посмотрите «Пример для заполнения».</div>`}
@@ -2298,13 +2297,12 @@ function renderClient() {
   const dots = { card: X.card.name && N(X.card.amount) ? "ok" : "nd", fin: X.per.some(p => isNum(fv("rev", p.id))) ? "ok" : "nd", an: v.sev, prob: pr.some(p => p.sev === "crit") ? "crit" : pr.some(p => p.sev === "risk") ? "risk" : pr.some(p => p.sev === "chk") ? "chk" : "ok", concl: v.sev };
   const body = { card: pageCard, fin: pageFin, an: pageAn, prob: pageProb, concl: pageConcl }[PAGE](pr, v);
   document.body.innerHTML = `<div class="app"><nav class="rail">
-    <div class="brand"><span>Экспресс-анализ<small>для кредитного менеджера</small></span></div>
+    <div class="brand"><span>Экспресс-анализ<small>для клиентского менеджера</small></span></div>
     <div class="client"><b>${esc(X.card.name || "Новый клиент")}</b><button data-act="home">← ко всем клиентам</button></div>
     <ol class="steps">${PAGES.map(([id, t]) => `<li><button data-page="${id}"${PAGE === id ? ' aria-current="page"' : ""}>${t}<span class="dot ${dots[id]}"></span></button></li>`).join("")}</ol>
-    <div class="foot"><button class="btn ghost" style="padding-left:0" data-act="save">Сохранить в файл</button><br>Все суммы — тыс. тг. Данные только в этом браузере.</div>
+    <div class="foot"><div class="foot-save"><button class="btn ghost" style="padding-left:0" data-act="save">Сохранить в файл</button><br>Все суммы — тыс. тг. Данные только в этом браузере.</div><div class="copy">© 2026 Создан ОФКК Костанай</div></div>
   </nav><main class="main">${body}</main></div><div id="toast"></div><input type="file" id="ufile" multiple accept=".xlsx,.xlsm,.xls,.pdf" class="hidden">`;
   const cur = document.querySelector('.steps [aria-current="page"]'); if (cur && window.innerWidth <= 860) cur.scrollIntoView({ inline: "center", block: "nearest" });
-  if (PAGE === "concl") { const ta = $("#concl"); if (ta) ta.style.height = Math.max(560, ta.scrollHeight + 10) + "px"; }
 }
 // перерисовка с сохранением фокуса и прокрутки
 function rerender() {
@@ -2314,69 +2312,27 @@ function rerender() {
   if (key) { const el = document.querySelector(`[data-k="${CSS.escape(key)}"]`); if (el) { el.focus(); if (el.matches("input.num")) el.select(); else if (el.tagName === "INPUT" && /text|search/.test(el.type) && el.setSelectionRange) { const n = el.value.length; el.setSelectionRange(n, n); } } }
 }
 
-/* ---------------------------------------------------------------- 1. Карточка */
+/* ---------------------------------------------------------------- 1. Карточка: запрашиваемые условия */
 function pageCard() {
   const c = X.card, m = analyze(), lp = m.newPay;
-  const cin = (f, ph = "", type = "text") => `<input class="inp" type="${type}" data-k="c.${f}" value="${esc(c[f] ?? "")}" placeholder="${esc(ph)}">`;
   const cnum = (f, ph = "") => num(c[f], "c." + f, ph ? `placeholder="${esc(ph)}"` : "");
   const csel = (f, list) => `<select class="inp" data-k="c.${f}">${opts(list, c[f])}</select>`;
-  const loans = c.loans || [], coll = c.coll || [], guar = c.guar || [];
-  return `<div class="pagehead"><div class="lead"><h1>Карточка клиента</h1><p>Кто клиент, что он просит и какие у него уже есть кредиты. Серые поля заполняете вы; суммы — в тыс. тенге.</p></div></div>
-  <section class="panel"><h2>Клиент</h2><p class="hint">Данные из регистрационных документов или со слов клиента.</p>
+  const pe = isNum(c.payExist) ? c.payExist : ((c.loans || []).length ? m.payExist : null);
+  return `<div class="pagehead"><div class="lead"><h1>Карточка клиента</h1><p>Что просит клиент. По этим цифрам считается будущий платёж и хватит ли на него денег. Серые поля заполняете вы; суммы — в тыс. тенге.</p></div></div>
+  <section class="panel"><h2>Запрашиваемые условия</h2><p class="hint">Взнос по действующим кредитам — примерная сумма всех платежей клиента в месяц по кредитам, займам и лизингу (со слов клиента, если справки ПКБ нет).</p>
     <div class="grid">
-      ${fld("Наименование", cin("name", "ТОО «…»"))}
-      ${fld("Форма", csel("form", ["ТОО", "ИП", "АО", "КХ / ФХ", "Другое"]))}
-      ${fld("БИН / ИИН", cin("bin", "12 цифр"))}
-      ${fld("Дата регистрации", cin("regDate", "", "date"))}
-      ${fld("Вид деятельности", cin("activity", "чем занимается"), "wide")}
-      ${fld("Руководитель", cin("director"))}
-      ${fld("Учредители (доли)", cin("owners", "ФИО — 100 %"))}
-      ${fld("Контакт клиента", cin("phone"))}
-      ${fld("Кредитный менеджер", cin("km"))}
-    </div></section>
-  <section class="panel"><h2>Запрашиваемые условия</h2><p class="hint">Что просит клиент. По этим цифрам считается будущий ежемесячный платёж.</p>
-    <div class="grid">
+      ${fld("Клиент", `<input class="inp" data-k="c.name" value="${esc(c.name || "")}" placeholder="ТОО «…» / ИП …">`, "wide")}
       ${fld("Продукт", csel("product", PRODUCTS))}
       ${fld("Цель", csel("purpose", PURPOSES))}
-      ${fld("Программа финансирования", `<input class="inp" list="progs" data-k="c.program" value="${esc(c.program || "")}"><datalist id="progs">${PROGRAMS.map(p => `<option value="${esc(p)}">`).join("")}</datalist>`)}
       ${fld("Сумма займа, тыс. тг", cnum("amount"))}
       ${fld("Срок, мес.", cnum("term"))}
       ${fld("Ставка, % годовых", cnum("rate"))}
       ${fld("Погашение", csel("sched", Object.entries(SCHED)))}
       ${fld("Льготный период по долгу, мес.", cnum("grace", "0"))}
-      ${fld(`Гарантия фонда, % от суммы <i>(если есть)</i>`, cnum("guarPct", "например, 50"))}
-      ${fld("Ежемесячный платёж по новому кредиту", `<div class="calcbox">${lp ? fmt(lp.pay) + " тыс. тг" : "— укажите сумму, срок и ставку"}</div>${lp ? `<span class="small muted">${esc(lp.note)}${N(c.grace) ? `; в льготный период ~${fmt(lp.grace)} тыс. тг` : ""}</span>` : ""}`)}
+      ${fld("Взнос по действующим кредитам, тыс. тг в месяц", num(pe, "c.payExist", `placeholder="0 — если кредитов нет"`))}
+      ${fld("Платёж по новому кредиту", `<div class="calcbox">${lp ? fmt(lp.pay) + " тыс. тг в месяц" : "— укажите сумму, срок и ставку"}</div>${lp ? `<span class="small muted">${esc(lp.note)}${N(c.grace) ? `; в льготный период ~${fmt(lp.grace)} тыс. тг` : ""}</span>` : ""}`)}
+      ${fld("Все платежи в месяц", `<div class="calcbox">${lp || N(pe) ? fmt(N(pe) + (lp ? lp.pay : 0)) + " тыс. тг" : "—"}</div>`)}
     </div></section>
-  <section class="panel"><h2>Взносы по действующим кредитам</h2><p class="hint">Все кредиты, займы и лизинг компании (и учредителя, если он гасит их из денег бизнеса). Платёж — примерный ежемесячный. Если кредит будет погашен новым — отметьте «рефинансируется».</p>
-    <div class="tw"><table class="t"><thead><tr><th class="l">Кредитор</th><th class="l">Вид</th><th>Остаток долга</th><th>Платёж в месяц</th><th class="l">Погашение до</th><th class="l">Просрочки</th><th class="l">Рефинанси&shy;руется</th><th></th></tr></thead><tbody>
-    ${loans.map((l, i) => `<tr><td class="c"><input class="inp txt" data-k="a.loans.${i}.bank" value="${esc(l.bank || "")}" placeholder="банк / МФО / лизинг"></td>
-      <td class="c"><select class="inp" data-k="a.loans.${i}.kind">${opts(["Кредит", "Кредитная линия", "Овердрафт", "Лизинг", "Заём", "Кредитная карта"], l.kind)}</select></td>
-      <td class="c">${num(l.balance, `a.loans.${i}.balance`)}</td><td class="c">${num(l.pay, `a.loans.${i}.pay`)}</td>
-      <td class="c"><input class="inp txt" type="month" data-k="a.loans.${i}.end" value="${esc(l.end || "")}"></td>
-      <td class="c"><select class="inp" data-k="a.loans.${i}.overdue">${opts(Object.entries(OVERDUE), l.overdue || "no")}</select></td>
-      <td style="text-align:center"><input type="checkbox" data-k="a.loans.${i}.refin"${l.refin ? " checked" : ""}></td>
-      <td class="x"><button class="xbtn" data-rm="loans.${i}" title="Удалить">×</button></td></tr>`).join("")}
-    ${loans.length ? `<tr class="tot"><td class="l" colspan="2">Итого</td><td>${T(m.loanBal)}</td><td>${T(sum(loans.map(l => l.pay)))}</td><td colspan="4" class="l small">${m.refinBal ? `рефинансируется ${fmt(m.refinBal)}; ` : ""}платежи без рефинансируемых: ${T(m.payExist)}</td></tr>` : `<tr><td colspan="8" class="l muted">Действующих кредитов нет — или добавьте их.</td></tr>`}
-    </tbody></table></div><div class="row" style="margin-top:10px"><button class="btn" data-add="loans">+ Кредит</button></div></section>
-  <section class="panel"><h2>Залог и залогодатели</h2><p class="hint">Дисконт подставляется по виду залога — его можно изменить под правила банка. Залоговая стоимость = рыночная × (1 − дисконт).</p>
-    <div class="tw"><table class="t"><thead><tr><th class="l">Вид залога</th><th class="l">Описание</th><th class="l">Залогодатель</th><th>Рыночная стоимость</th><th>Дисконт, %</th><th>Залоговая стоимость</th><th></th></tr></thead><tbody>
-    ${coll.map((z, i) => `<tr><td class="c"><select class="inp" data-k="a.coll.${i}.type">${opts(Object.keys(COLL), z.type)}</select></td>
-      <td class="c"><input class="inp txt" data-k="a.coll.${i}.desc" value="${esc(z.desc || "")}" placeholder="адрес, марка, площадь"></td>
-      <td class="c"><input class="inp txt" data-k="a.coll.${i}.owner" value="${esc(z.owner || "")}" placeholder="сам клиент / ФИО"></td>
-      <td class="c">${num(z.value, `a.coll.${i}.value`)}</td><td class="c">${num(z.disc, `a.coll.${i}.disc`)}</td>
-      <td>${T(N(z.value) * (1 - N(z.disc) / 100))}</td><td class="x"><button class="xbtn" data-rm="coll.${i}">×</button></td></tr>`).join("")}
-    ${coll.length ? `<tr class="tot"><td class="l" colspan="3">Итого</td><td>${T(m.collMkt)}</td><td></td><td>${T(m.collDisc)}</td><td></td></tr>` : `<tr><td colspan="7" class="l muted">Залог не добавлен.</td></tr>`}
-    </tbody></table></div><div class="row" style="margin-top:10px"><button class="btn" data-add="coll">+ Залог</button>${N(c.amount) ? `<span class="small muted">Покрытие суммы займа: <b>${isNum(m.coll) ? fmt(m.coll, "p") : "—"}</b>${m.guarAmt ? ` (включая гарантию фонда ${fmt(m.guarAmt)} тыс. тг)` : ""}</span>` : ""}</div></section>
-  <section class="panel"><h2>Гаранты</h2><p class="hint">Кто ещё отвечает по кредиту: учредитель, супруг(а), связанная компания.</p>
-    <div class="tw"><table class="t"><thead><tr><th class="l">ФИО / наименование</th><th class="l">Тип</th><th class="l">Связь с клиентом</th><th class="l">Доход / имущество (кратко)</th><th></th></tr></thead><tbody>
-    ${guar.map((g, i) => `<tr><td class="c"><input class="inp txt" data-k="a.guar.${i}.name" value="${esc(g.name || "")}"></td>
-      <td class="c"><select class="inp" data-k="a.guar.${i}.type">${opts(["Физическое лицо", "Юридическое лицо"], g.type)}</select></td>
-      <td class="c"><input class="inp txt" data-k="a.guar.${i}.rel" value="${esc(g.rel || "")}" placeholder="учредитель, супруг(а)…"></td>
-      <td class="c"><input class="inp txt" data-k="a.guar.${i}.note" value="${esc(g.note || "")}"></td>
-      <td class="x"><button class="xbtn" data-rm="guar.${i}">×</button></td></tr>`).join("") || `<tr><td colspan="5" class="l muted">Гарантов нет.</td></tr>`}
-    </tbody></table></div><div class="row" style="margin-top:10px"><button class="btn" data-add="guar">+ Гарант</button></div></section>
-  <section class="panel"><h2>Комментарий менеджера</h2><p class="hint">Всё важное со слов клиента: сезонность, крупные контракты, планы. Попадёт в заключение.</p>
-    <textarea class="inp" data-k="c.notes" rows="4">${esc(c.notes || "")}</textarea></section>
   <div class="row noprint"><button class="btn primary" data-page="fin">Дальше: финансовая отчётность →</button></div>`;
 }
 
@@ -2434,7 +2390,6 @@ function pageAn(pr, v) {
     kpi(!m.pl ? "nd" : m.ni > 0 ? "ok" : "risk", "Чистая прибыль", T(m.ni), "тыс. тг", m.ni > 0 ? `Компания зарабатывает: из каждых 100 тенге выручки остаётся ${fmt(m.nm * 100, "1")} тенге прибыли.` : "Компания работает в убыток.", isNum(m.gm) ? `Наценка (валовая маржа): ${fmt(m.gm, "p")}` : ""),
     kpi(dscrSev, "Хватает ли денег на платежи", isNum(m.dscr) ? fmt(m.dscr, "x") : "—", "", isNum(m.dscr) ? `Бизнес зарабатывает ~${T(m.cashMonth)} тыс. тг в месяц, а платить по всем кредитам нужно ~${T(m.payTotal)}. Нужно не меньше ${fmt(NORM.dscr_ok, "x")}: т.е. на каждый тенге платежа — ${fmt(NORM.dscr_ok, "x")} тенге дохода.` : "Нет данных о платежах или о прибыли.", m.daKnown ? "" : "Амортизация не указана — оценка осторожная.", "DSCR = (EBITDA − КПН) / 12 ÷ платежи по всем кредитам в месяц"),
     kpi(sevBy(m.lev, NORM.lev_ok, NORM.lev_max, false), "Долговая нагрузка", isNum(m.lev) ? fmt(m.lev, "1") : "—", "лет", isNum(m.lev) ? `За сколько лет компания могла бы погасить все долги (с новым кредитом — ${T(m.debtNew)} тыс. тг), если бы весь заработок шёл на это. Норма — до ${fmt(NORM.lev_ok, "1")}.` : "Нет данных о долгах или EBITDA.", "", "Долг / EBITDA. EBITDA — прибыль до процентов, налогов и амортизации"),
-    kpi(c.product === "Овердрафт" ? "nd" : sevBy(m.coll, NORM.coll_ok, NORM.coll_min), "Покрытие залогом", isNum(m.coll) ? fmt(m.coll, "p") : "—", "", isNum(m.coll) ? `Залог с учётом дисконта${m.guarAmt ? " и гарантии фонда" : ""} покрывает эту долю суммы займа. Норма — от 100 %.` : "Нет суммы займа или залога.", m.collDisc ? `Залоговая стоимость: ${T(m.collDisc)} тыс. тг` : ""),
     kpi(sevBy(m.liq, NORM.liq_ok, NORM.liq_min), "Ликвидность", isNum(m.liq) ? fmt(m.liq, "x") : "—", "", "Хватает ли денег, дебиторки и запасов, чтобы закрыть долги до года. Норма — от 1.", "", "Текущие активы / текущие обязательства"),
     kpi(!isNum(m.eqr) ? "nd" : N(m.eq) < 0 ? "crit" : sevBy(m.eqr, NORM.eq_ok, NORM.eq_min), "Собственные средства", isNum(m.eqr) ? fmt(m.eqr, "p") : "—", "", "Какая часть имущества компании принадлежит ей самой, а не куплена в долг. Норма — от 20 %.", isNum(m.eq) ? `Капитал: ${T(m.eq)} тыс. тг` : ""),
   ];
@@ -2455,7 +2410,7 @@ function pageAn(pr, v) {
   <section class="panel"><h2>Платежи в месяц</h2>
     <div class="tw"><table class="t" style="max-width:640px"><tbody>
       <tr><td class="l">Заработок бизнеса в месяц (EBITDA − КПН) / 12</td><td>${T(m.cashMonth)}</td></tr>
-      ${(c.loans || []).map(l => `<tr><td class="l">— ${esc(l.bank || "кредитор")} (${esc(l.kind || "")})${l.refin ? " — рефинансируется, не учитывается" : ""}</td><td>${l.refin ? "<s>" + T(l.pay) + "</s>" : T(l.pay)}</td></tr>`).join("")}
+      <tr><td class="l">— взнос по действующим кредитам</td><td>${m.payKnown ? T(m.payExist) : "не указан"}</td></tr>
       <tr><td class="l">— новый кредит</td><td>${m.newPay ? T(m.newPay.pay) : "—"}</td></tr>
       <tr class="tot"><td class="l">Все платежи</td><td>${T(m.payTotal)}</td></tr>
       <tr class="tot"><td class="l">Остаётся после платежей</td><td class="${m.cashMonth - m.payTotal < 0 ? "neg" : ""}">${isNum(m.cashMonth) ? T(m.cashMonth - m.payTotal) : "—"}</td></tr>
@@ -2474,86 +2429,72 @@ function pageProb(pr) {
   <div class="row noprint" style="margin-top:14px"><button class="btn primary" data-page="concl">Дальше: заключение →</button></div>`;
 }
 
-/* ---------------------------------------------------------------- 5. Заключение */
+/* ---------------------------------------------------------------- 5. Заключение: готовый документ, без редактирования */
 function pageConcl(pr, v) {
-  X.concl = X.concl || { text: "", edited: false };
-  if (!X.concl.text) X.concl.text = buildConclusion(pr, v);
-  return `<div class="pagehead"><div class="lead"><h1>Заключение</h1><p>Сайт написал заключение сам по всем данным. Текст можно править — правки сохраняются. «Сформировать заново» вернёт автоматический текст.</p></div>
-    <div class="row noprint"><button class="btn" data-act="regen">Сформировать заново</button><button class="btn" data-act="copy">Копировать текст</button><button class="btn primary" data-act="print">Печать / PDF</button></div></div>
-  <div class="verdict ${v.sev}"><div class="vicon">${v.icon}</div><div><div class="big">${esc(v.title)}</div><p>${esc(v.text)}</p></div></div>
-  ${X.concl.edited ? `<p class="edited noprint">Текст изменён вручную — автоматически не обновляется.</p>` : ""}
-  <textarea class="concl" id="concl" data-k="concl" spellcheck="true">${esc(X.concl.text)}</textarea>
-  <div class="printonly">${esc(X.concl.text)}</div>`;
+  const doc = buildConclusion(pr, v);
+  return `<div class="pagehead"><div class="lead"><h1>Заключение</h1><p>Готовое заключение по всем данным клиента. Оно обновляется само, когда вы меняете цифры.</p></div>
+    <div class="row noprint"><button class="btn" data-act="copy">Копировать текст</button><button class="btn primary" data-act="print">Печать / PDF</button></div></div>
+  <article class="doc">${docHtml(doc)}</article>`;
+}
+const docText = doc => doc.map((b, i) => b.title ? b.title.toUpperCase() : b.h ? "\n" + b.h.toUpperCase() : b.li ? "– " + b.li : b.v ? `\nВЫВОД: ${b.v.title.toUpperCase()}\n${b.v.text}` : b.meta ? (i === doc.length - 1 ? "\n" + b.meta : b.meta) : b.p).join("\n").trim();
+function docHtml(doc) {
+  let out = "", ul = false;
+  for (const b of doc) {
+    if (b.li && !ul) { out += "<ul>"; ul = true; } else if (!b.li && ul) { out += "</ul>"; ul = false; }
+    if (b.title) out += `<h2 class="dt">${esc(b.title)}</h2>`;
+    else if (b.meta) out += `<p class="dmeta">${esc(b.meta)}</p>`;
+    else if (b.v) out += `<div class="dverdict ${b.v.sev}"><span>Вывод</span><b>${esc(b.v.title)}</b><p>${esc(b.v.text)}</p></div>`;
+    else if (b.h) out += `<h3>${esc(b.h)}</h3>`;
+    else if (b.li) out += `<li>${b.sev ? `<span class="tag ${b.sev}">${SEVT[b.sev]}</span> ` : ""}${esc(b.li)}</li>`;
+    else out += `<p>${esc(b.p)}</p>`;
+  }
+  return out + (ul ? "</ul>" : "");
 }
 function buildConclusion(pr, v) {
-  const c = X.card, m = analyze(), L = [], t = x => isNum(x) ? fmt(x) + " тыс. тг" : "нет данных";
-  const today = new Date().toLocaleDateString("ru-RU");
-  L.push(`ЭКСПРЕСС-АНАЛИЗ КЛИЕНТА (предварительная оценка)`);
-  L.push(`Дата: ${today}${c.km ? `. Кредитный менеджер: ${c.km}` : ""}`);
-  L.push("");
-  L.push(`ВЫВОД: ${v.title.toUpperCase()}`);
-  L.push(v.text);
-  L.push("");
-  L.push("1. КЛИЕНТ И ЗАПРОС");
-  L.push(`${c.name || "Клиент"}${c.bin ? `, БИН/ИИН ${c.bin}` : ""}${c.regDate ? `, зарегистрирован ${new Date(c.regDate).toLocaleDateString("ru-RU")}${isNum(m.age) ? ` (работает ${m.age >= 24 ? Math.floor(m.age / 12) + " лет" : m.age + " мес."})` : ""}` : ""}.`);
-  if (c.activity) L.push(`Деятельность: ${c.activity}.`);
-  if (c.director || c.owners) L.push([c.director ? `Руководитель: ${c.director}` : "", c.owners ? `учредители: ${c.owners}` : ""].filter(Boolean).join("; ") + ".");
-  L.push(`Запрос: ${(c.product || "кредит").toLowerCase()} на сумму ${t(c.amount)}, срок ${c.term || "—"} мес., ставка ${isNum(c.rate) ? fmt(c.rate, "1") + " %" : "—"}, цель — ${(c.purpose || "").toLowerCase()}. Программа: ${c.program || "не указана"}.`);
-  if (m.newPay) L.push(`Ежемесячный платёж по новому кредиту — около ${t(m.newPay.pay)} (${m.newPay.note}).`);
-  L.push("");
-  L.push("2. ФИНАНСОВОЕ ПОЛОЖЕНИЕ");
+  const c = X.card, m = analyze(), D = [], t = x => isNum(x) ? fmt(x) + " тыс. тг" : "нет данных";
+  const P = p => D.push({ p }), H = h => D.push({ h }), LI = (li, sev) => D.push({ li, sev });
+  D.push({ title: "Экспресс-анализ клиента" });
+  D.push({ meta: `${c.name || "Клиент"} · ${new Date().toLocaleDateString("ru-RU")} · предварительная оценка` });
+  D.push({ v });
+  H("1. Запрос клиента");
+  P(`${c.product || "Кредит"} на сумму ${t(c.amount)}, срок ${c.term || "—"} мес., ставка ${isNum(c.rate) ? fmt(c.rate, "1") + " %" : "—"}. Цель — ${(c.purpose || "").toLowerCase()}.`);
+  if (m.newPay) P(`Ежемесячный платёж по новому кредиту — около ${t(m.newPay.pay)} (${m.newPay.note}).`);
+  H("2. Финансовое положение");
   if (m.pl) {
-    L.push(`Выручка за ${perLabel(m.pl)} — ${t(fv("rev", m.pl.id))}${m.k !== 1 ? ` (в пересчёте на год ~${t(m.rev)})` : ""}${isNum(m.revGr) ? `; ${m.yr === m.pl ? "" : `за ${perLabel(m.yr)} `}${m.revGr >= 0 ? "рост" : "снижение"} на ${fmt(Math.abs(m.revGr), "p")} к прошлому году` : ""}.`);
-    L.push(m.ni >= 0 ? `Бизнес прибыльный: чистая прибыль ${t(val("ni", m.pl.id))}, из каждых 100 тенге выручки остаётся ${fmt(m.nm * 100, "1")} тенге.` : `Бизнес убыточный: чистый убыток ${t(val("ni", m.pl.id))}.`);
-    L.push(`Заработок до процентов, налогов и амортизации (EBITDA) — ${t(m.ebitda)} в год${m.daKnown ? "" : " (без амортизации — оценка осторожная)"}.`);
-  } else L.push("Данных о выручке и прибыли нет.");
+    P(`Выручка за ${perLabel(m.pl)} — ${t(fv("rev", m.pl.id))}${m.k !== 1 ? ` (в пересчёте на год около ${t(m.rev)})` : ""}${isNum(m.revGr) ? `; ${m.revGr >= 0 ? "рост" : "снижение"} на ${fmt(Math.abs(m.revGr), "p")} к прошлому году` : ""}.`);
+    P(m.ni >= 0 ? `Бизнес прибыльный: чистая прибыль ${t(val("ni", m.pl.id))}, из каждых 100 тенге выручки остаётся ${fmt(m.nm * 100, "1")} тенге.` : `Бизнес убыточный: чистый убыток ${t(val("ni", m.pl.id))}.`);
+    P(`Заработок до процентов, налогов и амортизации (EBITDA) — ${t(m.ebitda)} в год${m.daKnown ? "" : " (без амортизации — оценка осторожная)"}.`);
+  } else P("Данных о выручке и прибыли нет.");
   if (m.bal) {
-    L.push(`На ${new Date(m.bal.date).toLocaleDateString("ru-RU")}: активы ${t(m.ta)}, собственный капитал ${t(m.eq)} (${isNum(m.eqr) ? fmt(m.eqr, "p") : "—"} от активов), кредиты и займы ${t(m.debt)}.`);
-    if (isNum(m.liq)) L.push(`Ликвидность ${fmt(m.liq, "x")} — ${m.liq >= NORM.liq_ok ? "текущих активов хватает на погашение долгов до года" : "текущих активов не хватает на погашение долгов до года"}.`);
+    P(`На ${new Date(m.bal.date).toLocaleDateString("ru-RU")}: активы ${t(m.ta)}, собственный капитал ${t(m.eq)} (${isNum(m.eqr) ? fmt(m.eqr, "p") : "—"} от активов), кредиты и займы ${t(m.debt)}.`);
+    if (isNum(m.liq)) P(`Ликвидность ${fmt(m.liq, "x")} — ${m.liq >= NORM.liq_ok ? "текущих активов хватает на погашение долгов до года" : "текущих активов не хватает на погашение долгов до года"}.`);
   }
-  if (isNum(m.ocf)) L.push(`По ДДС поток от основной деятельности — ${t(m.ocf)} в год.`);
-  L.push("");
-  L.push("3. ПЛАТЁЖЕСПОСОБНОСТЬ");
-  const loans = c.loans || [];
-  L.push(loans.length ? `Действующие кредиты: ${loans.length}, общий остаток ${t(m.loanBal)}, платежи ${t(m.payExist)} в месяц${m.refinBal ? ` (без рефинансируемых на ${t(m.refinBal)})` : ""}.` : "Действующих кредитов по данным клиента нет.");
-  if (loans.some(l => l.overdue && l.overdue !== "no")) L.push(`Просрочки: ${loans.filter(l => l.overdue && l.overdue !== "no").map(l => `${l.bank || "кредитор"} — ${OVERDUE[l.overdue]}`).join("; ")}.`);
+  if (isNum(m.ocf)) P(`По отчёту о движении денег поток от основной деятельности — ${t(m.ocf)} в год.`);
+  H("3. Платёжеспособность");
+  P(m.payKnown ? `Взнос по действующим кредитам — около ${t(m.payExist)} в месяц.` : "Взнос по действующим кредитам не указан.");
   if (isNum(m.dscr)) {
-    L.push(`Бизнес зарабатывает около ${t(m.cashMonth)} в месяц; со всеми платежами, включая новый кредит, нужно платить ${t(m.payTotal)} в месяц. Покрытие платежей ${fmt(m.dscr, "x")} (норма от ${fmt(NORM.dscr_ok, "x")}) — ${m.dscr >= NORM.dscr_ok ? "денег хватает с запасом" : m.dscr >= 1 ? "денег хватает впритык" : "денег не хватает"}.`);
-    if (isNum(m.maxAmt) && N(c.amount)) L.push(m.maxAmt >= N(c.amount) ? `Запрошенная сумма укладывается в возможности клиента (по доходам — до ~${t(Math.floor(m.maxAmt / 100) * 100)}).` : m.maxAmt > 0 ? `По доходам клиент может обслуживать кредит примерно до ${t(Math.floor(m.maxAmt / 100) * 100)} на тех же условиях — это меньше запрошенного.` : "При текущих доходах новый кредит клиенту не по силам.");
+    P(`Бизнес зарабатывает около ${t(m.cashMonth)} в месяц; со всеми платежами, включая новый кредит, нужно платить ${t(m.payTotal)} в месяц. Покрытие платежей ${fmt(m.dscr, "x")} (норма от ${fmt(NORM.dscr_ok, "x")}) — ${m.dscr >= NORM.dscr_ok ? "денег хватает с запасом" : m.dscr >= 1 ? "денег хватает впритык" : "денег не хватает"}.`);
+    if (isNum(m.maxAmt) && N(c.amount)) P(m.maxAmt >= N(c.amount) ? `Запрошенная сумма укладывается в возможности клиента (по доходам — до ${t(Math.floor(m.maxAmt / 100) * 100)}).` : m.maxAmt > 0 ? `По доходам клиент может обслуживать кредит примерно до ${t(Math.floor(m.maxAmt / 100) * 100)} на тех же условиях — это меньше запрошенного.` : "При текущих доходах новый кредит клиенту не по силам.");
   }
-  if (isNum(m.lev)) L.push(`Все долги с новым кредитом — ${t(m.debtNew)}, это ${fmt(m.lev, "1")} годового заработка (норма до ${fmt(NORM.lev_ok, "1")}).`);
-  L.push("");
-  L.push("4. ОБЕСПЕЧЕНИЕ");
-  const coll = c.coll || [];
-  if (coll.length) {
-    coll.forEach(z => L.push(`– ${z.type}${z.desc ? ": " + z.desc : ""}${z.owner ? `, залогодатель — ${z.owner}` : ""}; рыночная ${t(z.value)}, залоговая ${t(N(z.value) * (1 - N(z.disc) / 100))} (дисконт ${fmt(N(z.disc), "m")} %).`));
-  } else L.push("Залог не указан.");
-  if (m.guarAmt) L.push(`Гарантия фонда ${fmt(N(c.guarPct), "m")} % — ${t(m.guarAmt)}.`);
-  if (isNum(m.coll)) L.push(`Покрытие суммы займа — ${fmt(m.coll, "p")}${m.coll >= NORM.coll_ok ? ", достаточно" : ", недостаточно"}.`);
-  const g = c.guar || [];
-  if (g.length) L.push(`Гаранты: ${g.map(x => `${x.name || "—"}${x.rel ? ` (${x.rel})` : ""}`).join("; ")}.`);
-  L.push("");
-  L.push("5. ПРОБЛЕМЫ И РАСХОЖДЕНИЯ");
+  if (isNum(m.lev)) P(`Все долги с новым кредитом — ${t(m.debtNew)}, это ${fmt(m.lev, "1")} годового заработка (норма до ${fmt(NORM.lev_ok, "1")}).`);
+  H("4. Проблемы и расхождения");
   const serious = pr.filter(p => p.sev !== "ok");
-  if (serious.length) serious.forEach((p, i) => L.push(`${i + 1}) [${SEVT[p.sev]}] ${p.title}. ${p.why}`));
-  else L.push("Существенных проблем и расхождений не выявлено.");
-  L.push("");
-  L.push("6. РЕКОМЕНДАЦИЯ И ДАЛЬНЕЙШИЕ ДЕЙСТВИЯ");
-  if (v.sev === "crit") L.push("Заявку дальше не вести до устранения стоп-факторов. Сообщить клиенту о причинах.");
-  else if (v.sev === "nd") L.push("Дособрать данные и повторить экспресс-анализ.");
-  else if (v.sev === "ok") L.push("Клиент предварительно соответствует требованиям. Запросить полный пакет документов и передать на анализ.");
-  else L.push(`Клиента можно рассматривать при условии: ${[isNum(m.maxAmt) && N(c.amount) > m.maxAmt && m.maxAmt > 0 ? `снижение суммы до ~${t(Math.floor(m.maxAmt / 100) * 100)} или увеличение срока` : "", isNum(m.coll) && m.coll < NORM.coll_ok ? "дополнительный залог или гарантия фонда" : ""].filter(Boolean).join("; ") || "закрытие вопросов ниже"}.`);
+  if (serious.length) serious.forEach(p => LI(`${p.title}. ${p.why}`, p.sev));
+  else P("Существенных проблем и расхождений не выявлено.");
+  H("5. Рекомендация");
+  if (v.sev === "crit") P("Заявку дальше не вести до устранения стоп-факторов. Сообщить клиенту о причинах.");
+  else if (v.sev === "nd") P("Дособрать данные и повторить экспресс-анализ.");
+  else if (v.sev === "ok") P("Клиент предварительно соответствует требованиям. Запросить полный пакет документов и передать на анализ.");
+  else P(`Клиента можно рассматривать при условии: ${isNum(m.maxAmt) && N(c.amount) > m.maxAmt && m.maxAmt > 0 ? `снижение суммы до ${t(Math.floor(m.maxAmt / 100) * 100)} или увеличение срока` : "закрытие вопросов ниже"}.`);
   const todos = [...new Set(pr.filter(p => p.todo && p.sev !== "ok").map(p => p.todo))];
-  if (todos.length) { L.push("Что запросить / уточнить у клиента:"); todos.forEach(x => L.push("– " + x)); }
-  if (c.notes) { L.push(""); L.push("КОММЕНТАРИЙ МЕНЕДЖЕРА"); L.push(c.notes); }
-  L.push("");
-  L.push("Экспресс-анализ предварительный и не заменяет полного анализа и решения кредитного комитета. Суммы — в тыс. тенге.");
-  return L.join("\n");
+  if (todos.length) { P("Что запросить или уточнить у клиента:"); todos.forEach(x => LI(x)); }
+  D.push({ meta: "Экспресс-анализ предварительный и не заменяет полного анализа и решения кредитного комитета. Суммы — в тыс. тенге." });
+  return D;
 }
 
 
 /* ================================================================ Экспресс-анализ: события, пример, запуск */
-const NUMF = new Set(["amount", "term", "rate", "grace", "guarPct", "balance", "pay", "value", "disc", "months", "year", "rev", "vat_turn"]);
+const NUMF = new Set(["payExist", "amount", "term", "rate", "grace", "guarPct", "balance", "pay", "value", "disc", "months", "year", "rev", "vat_turn"]);
 // подтверждение внутри страницы (системные окна в некоторых браузерах и превью заблокированы)
 function ask(msg, yes = "Да", no = "Отмена") {
   return new Promise(res => {
@@ -2584,7 +2525,6 @@ function onChange(el) {
     else if (f === "year") d.year = nval();
     else { d[f] = raw; if (f === "form") d.formName = { "100": "КПН (ф. 100.00)", "910": "Упрощённая декларация (ф. 910.00)", "300": "НДС (ф. 300.00)", "200": "ИПН и социальный налог (ф. 200.00)", "220": "ИПН (ф. 220.00)" }[raw] || raw; }
   }
-  else if (k === "concl") { return true; }
   touch(); return true;
 }
 async function handleFiles(files) {
@@ -2621,8 +2561,7 @@ document.addEventListener("click", async e => {
     case "addper": { const last = X.per[X.per.length - 1], y = last && last.date ? +last.date.slice(0, 4) + 1 : new Date().getFullYear(); X.per.push({ id: uid(), date: `${y}-${N(last?.months) === 12 ? "09-30" : "12-31"}`, months: N(last?.months) === 12 ? 9 : 12 }); touch(); rerender(); break; }
     case "pick": $("#ufile").click(); break;
     case "adddecl": X.decl.push({ id: uid(), file: "", form: "100", formName: "КПН (ф. 100.00)", year: new Date().getFullYear() - 1, part: "Y", vals: {} }); touch(); rerender(); break;
-    case "regen": if (!X.concl.edited || await ask("Заменить ваш текст автоматическим?", "Заменить")) { X.concl = { text: "", edited: false }; saveAll(); rerender(); } break;
-    case "copy": try { await navigator.clipboard.writeText(X.concl.text); toast("Текст скопирован"); } catch (err) { $("#concl").select(); document.execCommand("copy"); toast("Текст скопирован"); } break;
+    case "copy": { const txt = docText(buildConclusion(problems(), verdict(problems()))); try { await navigator.clipboard.writeText(txt); toast("Текст заключения скопирован"); } catch (err) { const r = document.createRange(); r.selectNodeContents($(".doc")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Текст выделен — нажмите Ctrl+C"); } break; }
     case "print": window.print(); break;
   }
 });
@@ -2631,7 +2570,6 @@ document.addEventListener("change", e => {
   if (el.id === "ofile") { const f = el.files[0]; if (!f) return; f.text().then(txt => { try { const o = JSON.parse(txt), c = o.client || o; if (!c.card || !c.per) throw new Error(); c.id = uid(); c.demo = false; CLIENTS.push(c); saveAll(true); openClient(c); toast("Клиент открыт из файла"); } catch (err) { toast("Это не файл экспресс-анализа"); } }); return; }
   if (el.id === "ufile") { handleFiles([...el.files]); el.value = ""; return; }
   if (el.dataset.upl) { UPL[el.dataset.upl] = el.value; return; }
-  if (el.dataset.k === "concl") return;
   if (onChange(el)) { PENDING = true; if (!PD) setTimeout(flush, 0); }
 });
 function flush() { if (PENDING && X && !PD) { PENDING = false; rerender(); } }
@@ -2639,10 +2577,6 @@ function flush() { if (PENDING && X && !PD) { PENDING = false; rerender(); } }
 let PD = false, PENDING = false;
 document.addEventListener("pointerdown", () => { PD = true; }, true);
 document.addEventListener("pointerup", () => { PD = false; setTimeout(flush, 0); }, true);
-document.addEventListener("input", e => {
-  const el = e.target;
-  if (el.dataset.k === "concl") { X.concl.text = el.value; X.concl.edited = true; saveAll(); const p = $(".printonly"); if (p) p.textContent = el.value; }
-});
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input.inp")) e.target.blur(); });
 document.addEventListener("focusin", e => { if (e.target.matches("input.num")) { const v = parseNum(e.target.value); if (isNum(v)) e.target.value = String(v).replace(".", ","); e.target.select(); } });
 document.addEventListener("dragover", e => { const d = e.target.closest?.("#drop"); if (d) { e.preventDefault(); d.classList.add("on"); } });
@@ -2656,21 +2590,9 @@ function demoClient() {
   c.demo = true;
   c.per = [{ id: "p1", date: `${y - 2}-12-31`, months: 12 }, { id: "p2", date: `${y - 1}-12-31`, months: 12 }];
   Object.assign(c.card, {
-    name: "ТОО «Пример-Трейд» (вымышленная компания)", bin: "000000000000", form: "ТОО", regDate: "2016-04-12",
-    activity: "Оптовая торговля строительными материалами", director: "Серікұлы Арман (вымышл.)", owners: "Серікұлы Арман — 100 %", phone: "", km: "",
-    product: "Кредит", purpose: "Пополнение оборотных средств", program: "Собственная программа банка",
-    amount: 40000, term: 36, rate: 19.5, sched: "ann", grace: 0, guarPct: null,
-    notes: "Клиент закупает стройматериалы под весенне-летний сезон. Основные покупатели — строительные компании города. Просит кредит на закупку товара к сезону.",
-    loans: [
-      { bank: "Банк А", kind: "Кредит", balance: 58000, pay: 1450, end: `${y + 3}-06`, overdue: "past", refin: false },
-      { bank: "Лизинговая компания Б", kind: "Лизинг", balance: 22300, pay: 820, end: `${y + 2}-11`, overdue: "no", refin: false },
-      { bank: "Банк В", kind: "Кредитная линия", balance: 15000, pay: 250, end: `${y}-12`, overdue: "no", refin: false },
-    ],
-    coll: [
-      { type: "Недвижимость коммерческая", desc: "Склад 640 м², г. Костанай (пример)", owner: "Серікұлы Арман (учредитель)", value: 55000, disc: 30 },
-      { type: "Транспорт", desc: "Грузовой автомобиль 2019 г.в.", owner: "сам клиент", value: 18000, disc: 40 },
-    ],
-    guar: [{ name: "Серікұлы Арман", type: "Физическое лицо", rel: "учредитель и директор", note: "личное имущество — склад в залоге" }],
+    name: "ТОО «Пример-Трейд» (вымышленная компания)",
+    product: "Кредит", purpose: "Пополнение оборотных средств",
+    amount: 40000, term: 36, rate: 19.5, sched: "ann", grace: 0, payExist: 2520,
   });
   const F = {
     cash: [18400, 22700], ar: [61300, 92400], inv: [88700, 96200], oca: [7900, 8400], fa: [54600, 69260],

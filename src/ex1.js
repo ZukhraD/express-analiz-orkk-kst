@@ -108,9 +108,7 @@ function defPeriods() {
 function newClient() {
   return {
     id: uid(), created: Date.now(), updated: Date.now(),
-    card: { name: "", bin: "", form: "ТОО", regDate: "", activity: "", director: "", owners: "", km: "", phone: "",
-      product: "Кредит", purpose: PURPOSES[0], program: PROGRAMS[0], amount: null, term: null, rate: null, sched: "ann", grace: 0, guarPct: null, notes: "",
-      loans: [], coll: [], guar: [] },
+    card: { name: "", product: "Кредит", purpose: PURPOSES[0], amount: null, term: null, rate: null, sched: "ann", grace: 0, payExist: null },
     per: defPeriods(), fin: {}, files: [], decl: [], concl: { text: "", edited: false },
   };
 }
